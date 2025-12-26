@@ -4,7 +4,30 @@ from datetime import datetime, timedelta
 
 import requests
 
-from tassilo_simplefin import Account, Balance, Transaction
+from tassilo_simplefin import Account, Balance, Transaction, QueryLog
+
+from typing import NamedTuple
+
+ACCT_DUMP_EXLUDES = { # keys to exclude from raw_json dump
+    "balance",
+    "available-balance",
+    "balance-date",
+    "transactions",
+    "holdings",
+}
+
+BALANCE_DUMP_EXLUDES = { # keys to exclude from raw_json dump
+    "org",
+    "name",
+    "currency",
+    "transactions",
+    "holdings",
+}
+
+
+class QueryResult(NamedTuple):
+    accounts: list[Account]
+    querylog: QueryLog
 
 
 class SimpleFIN:
@@ -21,7 +44,7 @@ class SimpleFIN:
         self.debug = debug
         self.__timeout = 10
 
-    def query_accounts(self, days_history: int = 7) -> list[Account]:
+    def query_accounts(self, days_history: int = 7) -> QueryResult:
         start_date = datetime.now() - timedelta(days=days_history)
         logging.info(f"start_date is {start_date.isoformat(timespec='hours')}")
 
@@ -62,13 +85,21 @@ class SimpleFIN:
             if not bank:  # if org name is missing, org domain is required by simpleFIN
                 bank = acct_raw["org"].get("domain")
                 logging.info(f"Defaulted '{acct_name}' org name to domain '{bank}'")
+            # generate raw json without temporal data
+            acct_raw_json = json.dumps(
+                {
+                    k: v
+                    for k, v in acct_raw.items()
+                    if k not in ACCT_DUMP_EXLUDES
+                }
+            )
 
             acct = Account(
                 id=acct_raw["id"],
                 bank=bank,
                 name=acct_name,
                 currency=acct_raw["currency"],
-                raw_json=json.dumps(acct_raw),
+                raw_json=acct_raw_json,
                 transactions=[],
             )
             if self.debug:
@@ -89,7 +120,16 @@ class SimpleFIN:
 
             accounts.append(acct)
 
-        return accounts
+        # create query log
+        q_log = QueryLog(
+            query_date=datetime.now(),
+            days_history=days_history,
+            raw_response=resp.text,
+        )
+        if self.debug:
+            logging.debug(f"Created query log: {q_log}")
+
+        return QueryResult(accounts=accounts, querylog=q_log)
 
     @staticmethod
     def _get_balance(acct_raw:dict, debug:bool=False) -> list[Transaction]:
@@ -103,6 +143,8 @@ class SimpleFIN:
                 f"Couldn't get balance date for {acct_name}: {ex}.\nDefaulting to today."
             )
             balance_date = datetime.now()
+        # scrub time portion
+        balance_date = balance_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
         # get the balance
         try:
@@ -124,7 +166,16 @@ class SimpleFIN:
             available_balance: float | None = None
 
         # generate a balance id
-        balance_id: str = f"{acct_raw['id']}-{balance_date.timestamp()}"
+        balance_id: str = f"{acct_raw['id']}_{balance_date.strftime('%Y-%m-%d')}"
+
+        # generate raw json
+        balance_raw_json = json.dumps(
+            {
+                k: v
+                for k, v in acct_raw.items()
+                if k not in BALANCE_DUMP_EXLUDES
+            }
+        )
 
         balance: Balance = Balance(
             id=balance_id,
@@ -132,6 +183,7 @@ class SimpleFIN:
             balance=balance,
             balance_date=balance_date,
             available_balance=available_balance,
+            raw_json=balance_raw_json,
         )
         if debug:
             logging.debug(f"Loaded balance: {balance}")

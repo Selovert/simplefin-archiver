@@ -5,16 +5,11 @@ Placed inside the `tassilo_simplefin` package so it can be installed as a consol
 """
 
 import logging
-from copy import deepcopy
 from pathlib import Path
 from typing import Optional
 
 import typer
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
-import tassilo_simplefin.models as models
-from tassilo_simplefin import SimpleFIN
+from tassilo_simplefin import SimpleFIN, SimpleFIN_DB, QueryResult
 
 app = typer.Typer(help="Query SimpleFIN and persist accounts to a SQLite DB")
 
@@ -24,14 +19,6 @@ def init_logging(debug: bool) -> None:
     logging.basicConfig(level=level, format="%(levelname)s - %(name)s - %(message)s")
 
 
-def commit_accounts(accounts, db_url: str) -> None:
-    engine = create_engine(db_url)
-    models.reg.metadata.create_all(engine)
-    session = Session(engine)
-    for account in deepcopy(accounts):
-        session.merge(account)
-    session.commit()
-    session.close()
 
 
 def resolve_simplefin_key(
@@ -70,7 +57,7 @@ def run(
     days_history: int = typer.Option(
         14, "--days-history", help="days of history to query"
     ),
-    db: str = typer.Option("sqlite:///SimpleFIN.db", "--db", help="SQLAlchemy DB URL"),
+    db: str = typer.Option(SimpleFIN_DB.connection_str, "--db", help="SQLAlchemy DB URL"),
     simplefin_key: Optional[str] = typer.Option(
         None,
         "--simplefin-key",
@@ -88,13 +75,15 @@ def run(
     password = resolve_simplefin_key(simplefin_key, simplefin_key_file)
 
     conn = SimpleFIN(password, timeout=timeout, debug=debug)
-    accounts = conn.query_accounts(days_history=days_history)
+    query_result: QueryResult = conn.query_accounts(days_history=days_history)
 
-    commit_accounts(accounts, db)
+    with SimpleFIN_DB(connection_str=db) as db_conn:
+        db_conn.commit_accounts(accounts=query_result.accounts, querylog=query_result.querylog)
 
-    txs = [tx for acct in accounts for tx in acct.transactions]
+
+    txs = [tx for acct in query_result.accounts for tx in acct.transactions]
     typer.secho(
-        f"Saved {len(accounts)} accounts with {len(txs)} transactions to {db}",
+        f"Saved {len(query_result.accounts)} accounts with {len(txs)} transactions to {db}",
         fg=typer.colors.GREEN,
     )
 

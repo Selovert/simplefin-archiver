@@ -8,6 +8,15 @@ reg = registry()
 
 
 @reg.mapped_as_dataclass
+class QueryLog:
+    __tablename__ = "query_log"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, init=False)
+    query_date: Mapped[datetime]
+    days_history: Mapped[int]
+    raw_response: Mapped[str] = mapped_column(repr=False)
+
+
+@reg.mapped_as_dataclass
 class Account:
     __tablename__ = "account"
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -34,6 +43,7 @@ class Balance:
     account_id: Mapped[str] = mapped_column(ForeignKey("account.id"))
     balance: Mapped[float]
     balance_date: Mapped[datetime]
+    raw_json: Mapped[str] = mapped_column(repr=False)
     available_balance: Mapped[float] = mapped_column(default=None)
     account: Mapped[Account | None] = relationship(
         foreign_keys="Balance.account_id",
@@ -55,7 +65,7 @@ class Transaction:
     posted: Mapped[datetime]
     amount: Mapped[float]
     description: Mapped[str]
-    raw_json: Mapped[str]
+    raw_json: Mapped[str] = mapped_column(repr=False)
     payee: Mapped[str | None] = mapped_column(default=None)
     memo: Mapped[str | None] = mapped_column(default=None)
     category: Mapped[str | None] = mapped_column(default=None)
