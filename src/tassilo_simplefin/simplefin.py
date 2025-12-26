@@ -78,7 +78,6 @@ class SimpleFIN:
             if self.debug:
                 logging.debug(f"Loading balance for account {acct.id}...")
             balance = SimpleFIN._get_balance(acct_raw, self.debug)
-            logging.info(f"Loaded balance for account {acct.name}")
             acct.balances.append(balance)
 
             # transactions
