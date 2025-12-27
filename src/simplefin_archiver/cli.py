@@ -14,8 +14,6 @@ def init_logging(debug: bool) -> None:
     logging.basicConfig(level=level, format="%(levelname)s - %(name)s - %(message)s")
 
 
-
-
 def resolve_simplefin_key(
     simplefin_key: Optional[str], simplefin_key_file: Optional[Path]
 ) -> str:
@@ -61,20 +59,36 @@ def resolve_db_url(db: Optional[str]) -> str:
 
 @app.command()
 def run(
-    days_history: int = typer.Option(
-        14, "--days-history", help="days of history to query"
-    ),
-    db: str = typer.Option(SimpleFIN_DB.connection_str, "--db", help="SQLAlchemy DB URL"),
     simplefin_key: Optional[str] = typer.Option(
         None,
         "--simplefin-key",
         help="SimpleFIN API key (mutually exclusive with --simplefin-key-file)",
     ),
     simplefin_key_file: Optional[Path] = typer.Option(
-        None, "--simplefin-key-file", help="Path to file containing SimpleFIN API key"
+        None,
+        "--simplefin-key-file",
+        help="Path to file containing SimpleFIN API key",
     ),
-    timeout: int = typer.Option(20, "--timeout", help="connection timeout in seconds"),
-    debug: bool = typer.Option(False, "--debug", help="enable debug logging"),
+    days_history: int = typer.Option(
+        14,
+        "--days-history",
+        help="Days of history to query",
+    ),
+    db: Optional[str] = typer.Option(
+        None,
+        "--db",
+        help="SQLAlchemy DB URL (or use SIMPLEFIN_DB_PATH env var)",
+    ),
+    timeout: int = typer.Option(
+        20,
+        "--timeout",
+        help="Connection timeout in seconds",
+    ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Enable debug logging",
+    ),
 ) -> None:
     """Query SimpleFIN and save accounts to the given DB."""
     init_logging(debug)
@@ -88,10 +102,9 @@ def run(
     with SimpleFIN_DB(connection_str=db_url) as db_conn:
         db_conn.commit_accounts(accounts=query_result.accounts, query_log=query_result.querylog)
 
-
     txs = [tx for acct in query_result.accounts for tx in acct.transactions]
     typer.secho(
-        f"Saved {len(query_result.accounts)} accounts with {len(txs)} transactions to {db}",
+        f"Saved {len(query_result.accounts)} accounts with {len(txs)} transactions to {db_url}",
         fg=typer.colors.GREEN,
     )
 
