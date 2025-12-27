@@ -1,0 +1,8 @@
+services:
+  simplefin-archiver:
+    build: .
+    container_name: simplefin-archiver
+    volumes:
+      - ./data:/data
+    environment:
+      - SIMPLEFIN_API_KEY=${SIMPLEFIN_API_KEY}
