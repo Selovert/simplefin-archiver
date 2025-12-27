@@ -11,8 +11,8 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 from simplefin_archiver import SimpleFIN_DB  # noqa: E402
-if os.environ.get('DATABASE_URL'):
-    config.set_main_option('sqlalchemy.url', os.environ.get('DATABASE_URL'))
+if os.environ.get('SIMPLEFIN_DB_PATH'):
+    config.set_main_option("sqlalchemy.url", f"sqlite:///{os.environ.get('SIMPLEFIN_DB_PATH')}")
 else:
     config.set_main_option('sqlalchemy.url', SimpleFIN_DB.connection_str)
 
