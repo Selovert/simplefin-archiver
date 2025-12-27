@@ -1,11 +1,11 @@
 import logging
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
 
 reg = registry()
-
 
 @reg.mapped_as_dataclass
 class QueryLog:
@@ -26,10 +26,12 @@ class Account:
     raw_json: Mapped[str] = mapped_column(repr=False)
     transactions: Mapped[list["Transaction"]] = relationship(
         back_populates="account",
+        cascade="all, delete-orphan",
         default_factory=list,
     )
     balances: Mapped[list["Balance"]] = relationship(
         back_populates="account",
+        cascade="all, delete-orphan",
         default_factory=list,
     )
 
@@ -42,15 +44,15 @@ class Balance:
     balance: Mapped[float]
     balance_date: Mapped[datetime]
     raw_json: Mapped[str] = mapped_column(repr=False)
-    available_balance: Mapped[float] = mapped_column(default=None)
-    account: Mapped[Account] = relationship(
+    available_balance: Mapped[Optional[float]] = mapped_column(default=None)
+    account: Mapped["Account"] = relationship(
         back_populates="balances",
         default=None,
         init=False,
     )
 
     def __post_init__(self):
-        if not self.available_balance:
+        if self.available_balance is None:
             logging.debug(f"Auto-filling balance for account {self.id}")
             self.available_balance = self.balance
 
@@ -64,20 +66,20 @@ class Transaction:
     amount: Mapped[float]
     description: Mapped[str]
     raw_json: Mapped[str] = mapped_column(repr=False)
-    payee: Mapped[str | None] = mapped_column(default=None)
-    memo: Mapped[str | None] = mapped_column(default=None)
-    category: Mapped[str | None] = mapped_column(default=None)
-    tags: Mapped[str | None] = mapped_column(default=None)
-    notes: Mapped[str | None] = mapped_column(default=None)
-    account: Mapped[Account] = relationship(
+    payee: Mapped[Optional[str]] = mapped_column(default=None)
+    memo: Mapped[Optional[str]] = mapped_column(default=None)
+    category: Mapped[Optional[str]] = mapped_column(default=None)
+    tags: Mapped[Optional[str]] = mapped_column(default=None)
+    notes: Mapped[Optional[str]] = mapped_column(default=None)
+    transacted_at: Mapped[Optional[datetime]] = mapped_column(default=None)
+    extra_attrs: Mapped[Optional[str]] = mapped_column(default=None)
+    account: Mapped["Account"] = relationship(
         back_populates="transactions",
         default=None,
         init=False,
     )
-    transacted_at: Mapped[datetime] = mapped_column(default=None)
-    extra_attrs: Mapped[str] = mapped_column(default=None)
 
     def __post_init__(self):
-        if not self.transacted_at:
+        if self.transacted_at is None:
             logging.debug(f"Auto-filling transacted_at for transaction {self.id}")
             self.transacted_at = self.posted
