@@ -11,13 +11,18 @@ ENV PATH="/opt/uv-bin/:$PATH"
 # set the default db path
 ENV SIMPLEFIN_DB_PATH=/data/simplefin.db
 
-# copy pyproject
+# copy project files
 COPY pyproject.toml /app/pyproject.toml
+COPY uv.lock /app/uv.lock
+COPY README.md /app/README.md
 # copy app over
 COPY src /app/src
 # copy alembic files
 COPY alembic.ini /app/alembic.ini
 COPY alembic /app/alembic
+# copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Change the working directory to the `app` directory
 WORKDIR /app
