@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 alembic upgrade head
 
-uv run simplefin_archive
+export SIMPLEFIN_API_KEY_FILE="/app/simplefin_dev_key"
+
+simplefin-archive
