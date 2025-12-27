@@ -25,12 +25,10 @@ class Account:
     currency: Mapped[str]
     raw_json: Mapped[str] = mapped_column(repr=False)
     transactions: Mapped[list["Transaction"]] = relationship(
-        foreign_keys="Transaction.account_id",
         back_populates="account",
         default_factory=list,
     )
     balances: Mapped[list["Balance"]] = relationship(
-        foreign_keys="Balance.account_id",
         back_populates="account",
         default_factory=list,
     )
@@ -45,10 +43,10 @@ class Balance:
     balance_date: Mapped[datetime]
     raw_json: Mapped[str] = mapped_column(repr=False)
     available_balance: Mapped[float] = mapped_column(default=None)
-    account: Mapped[Account | None] = relationship(
-        foreign_keys="Balance.account_id",
+    account: Mapped[Account] = relationship(
         back_populates="balances",
         default=None,
+        init=False,
     )
 
     def __post_init__(self):
@@ -71,10 +69,10 @@ class Transaction:
     category: Mapped[str | None] = mapped_column(default=None)
     tags: Mapped[str | None] = mapped_column(default=None)
     notes: Mapped[str | None] = mapped_column(default=None)
-    account: Mapped[Account | None] = relationship(
-        foreign_keys="Transaction.account_id",
+    account: Mapped[Account] = relationship(
         back_populates="transactions",
         default=None,
+        init=False,
     )
     transacted_at: Mapped[datetime] = mapped_column(default=None)
     extra_attrs: Mapped[str] = mapped_column(default=None)
@@ -83,5 +81,3 @@ class Transaction:
         if not self.transacted_at:
             logging.debug(f"Auto-filling transacted_at for transaction {self.id}")
             self.transacted_at = self.posted
-
-    # def to_dict(self)

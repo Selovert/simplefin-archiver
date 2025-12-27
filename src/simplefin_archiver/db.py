@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -21,11 +19,13 @@ class SimpleFIN_DB:
         self.session.close()
         self.engine.dispose()
 
-    def commit_accounts(self, accounts: list[Account], querylog:QueryLog=None) -> None:
-        for account in deepcopy(accounts):
+    def commit_accounts(
+        self, accounts: list[Account], query_log: QueryLog = None
+    ) -> None:
+        for account in accounts:
             self.session.merge(account)
 
-        if querylog:
-            self.session.add(querylog)
+        if query_log:
+            self.session.add(query_log)
 
         self.session.commit()

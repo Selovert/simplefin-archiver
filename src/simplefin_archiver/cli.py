@@ -72,7 +72,7 @@ def run(
     query_result: QueryResult = conn.query_accounts(days_history=days_history)
 
     with SimpleFIN_DB(connection_str=db) as db_conn:
-        db_conn.commit_accounts(accounts=query_result.accounts, querylog=query_result.querylog)
+        db_conn.commit_accounts(accounts=query_result.accounts, query_log=query_result.querylog)
 
 
     txs = [tx for acct in query_result.accounts for tx in acct.transactions]
