@@ -32,4 +32,4 @@ RUN uv sync --locked --no-editable
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv tool install .
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
