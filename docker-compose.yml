@@ -7,17 +7,17 @@ services:
       - ./simplefin_data:/app/data
     environment:
       # Provide API key directly
-      # - SIMPLEFIN_KEY="your-api-key-here"
+      # - SIMPLEFIN_KEY=your-api-key-here
       # Provide API key via Docker secret (must enable secret below)
-      - SIMPLEFIN_KEY_FILE="/run/secrets/SIMPLEFIN_KEY"
+      - SIMPLEFIN_KEY_FILE=/run/secrets/SIMPLEFIN_KEY
       # Db path inside the container (optional , default: /app/data/simplefin.db)
-      # - SIMPLEFIN_DB_PATH="/app/data/simplefin.db"
+      # - SIMPLEFIN_DB_PATH=/app/data/simplefin.db
       # Days of history to query (optional, default: 5)
       # - QUERY_HISTORY_DAYS=5
       # Cron schedule (optional, default: "0 0 * * *" for daily at midnight)
       # - CRON_SCHEDULE="0 0 * * *"
       # Query at startup (optional, default: "false")
-      - QUERY_AT_STARTUP="true"
+      - QUERY_AT_STARTUP=true
     secrets:
       - SIMPLEFIN_KEY
     restart: unless-stopped
