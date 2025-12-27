@@ -2,7 +2,28 @@ services:
   simplefin-archiver:
     build: .
     container_name: simplefin-archiver
-    volumes:
-      - ./data:/data
-    environment:
-      - SIMPLEFIN_API_KEY=${SIMPLEFIN_API_KEY}
+    # Uncomment examples below to enable persistent storage, envs or secrets.
+    #  - Persist data (DB) on host:
+    #    volumes:
+    #      - ./simplefin_data:/app/data
+    #
+    #  - Provide API key directly (dev only):
+    #    environment:
+    #      SIMPLEFIN_API_KEY: "your-api-key-here"
+    #
+    #  - Bind-mount secret file and point the app to it (recommended):
+    #    volumes:
+    #      - ./secrets/simplefin_api_key:/run/secrets/simplefin_api_key:ro
+    #    environment:
+    #      SIMPLEFIN_API_KEY_FILE: "/run/secrets/simplefin_api_key"
+    #
+    #  - Minimal env overrides:
+    #    environment:
+    #      SIMPLEFIN_DB_PATH: "/app/data/simplefin.db"
+    #      SIMPLEFIN_QUERY_FQCY_DAYS: "1"
+    restart: unless-stopped
+
+    # Top-level secret example (uncomment to use):
+    # secrets:
+    #   simplefin_api_key:
+    #     file: ./secrets/simplefin_api_key
