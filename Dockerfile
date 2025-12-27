@@ -6,7 +6,7 @@ ENV UV_LINK_MODE=copy
 ENV UV_NO_DEV=1
 # make uv tools available globally
 ENV UV_TOOL_BIN_DIR=/opt/uv-bin/
-ENV PATH="/opt/uv-bin/bin:$PATH"
+ENV PATH="/opt/uv-bin/:$PATH"
 
 # set the default db path
 ENV SIMPLEFIN_DB_PATH=/data/simplefin.db
