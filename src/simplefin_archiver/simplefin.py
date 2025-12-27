@@ -8,7 +8,7 @@ from simplefin_archiver import Account, Balance, Transaction, QueryLog
 
 from typing import NamedTuple
 
-ACCT_DUMP_EXLUDES = { # keys to exclude from raw_json dump
+ACCT_DUMP_EXLUDES = {  # keys to exclude from raw_json dump
     "balance",
     "available-balance",
     "balance-date",
@@ -16,7 +16,7 @@ ACCT_DUMP_EXLUDES = { # keys to exclude from raw_json dump
     "holdings",
 }
 
-BALANCE_DUMP_EXLUDES = { # keys to exclude from raw_json dump
+BALANCE_DUMP_EXLUDES = {  # keys to exclude from raw_json dump
     "org",
     "name",
     "currency",
@@ -87,11 +87,7 @@ class SimpleFIN:
                 logging.info(f"Defaulted '{acct_name}' org name to domain '{bank}'")
             # generate raw json without temporal data
             acct_raw_json = json.dumps(
-                {
-                    k: v
-                    for k, v in acct_raw.items()
-                    if k not in ACCT_DUMP_EXLUDES
-                }
+                {k: v for k, v in acct_raw.items() if k not in ACCT_DUMP_EXLUDES}
             )
 
             acct = Account(
@@ -132,7 +128,7 @@ class SimpleFIN:
         return QueryResult(accounts=accounts, querylog=q_log)
 
     @staticmethod
-    def _get_balance(acct_raw:dict, debug:bool=False) -> list[Transaction]:
+    def _get_balance(acct_raw: dict, debug: bool = False) -> list[Transaction]:
         # get account name
         acct_name: str = acct_raw["name"]
         # get balance date
@@ -150,9 +146,7 @@ class SimpleFIN:
         try:
             balance: float = float(acct_raw["balance"])
         except Exception as ex:
-            logging.warning(
-                f"Couldn't get balance for {acct_name}: {ex}.\nDefaulting to 0"
-            )
+            logging.warning(f"Couldn't get balance for {acct_name}: {ex}.\nDefaulting to 0")
 
             balance: float = 0.0
 
@@ -170,11 +164,7 @@ class SimpleFIN:
 
         # generate raw json
         balance_raw_json = json.dumps(
-            {
-                k: v
-                for k, v in acct_raw.items()
-                if k not in BALANCE_DUMP_EXLUDES
-            }
+            {k: v for k, v in acct_raw.items() if k not in BALANCE_DUMP_EXLUDES}
         )
 
         balance: Balance = Balance(
@@ -190,24 +180,14 @@ class SimpleFIN:
 
         return balance
 
-
-
     @staticmethod
-    def _get_transactions(acct_raw:dict, debug:bool=False) -> list[Transaction]:
+    def _get_transactions(acct_raw: dict, debug: bool = False) -> list[Transaction]:
         txs: list[Transaction] = []
         txs_raw: list[dict] = acct_raw.get("transactions")
         for tx_raw in txs_raw:
             tx_id: str = tx_raw["id"]
             # extra dict of data we're not explicitly pulling
-            known_keys = [
-                "id",
-                "amount",
-                "description",
-                "posted",
-                "transacted_at",
-                "payee",
-                "memo"
-            ]
+            known_keys = ["id", "amount", "description", "posted", "transacted_at", "payee", "memo"]
             extra: dict = {k: v for k, v in tx_raw.items() if k not in known_keys}
 
             # posted date
