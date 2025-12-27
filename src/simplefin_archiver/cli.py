@@ -17,6 +17,15 @@ def init_logging(debug: bool) -> None:
 def resolve_simplefin_key(
     simplefin_key: Optional[str], simplefin_key_file: Optional[Path]
 ) -> str:
+    # default to env vars if not provided
+    if not simplefin_key:
+        simplefin_key = os.getenv("SIMPLEFIN_API_KEY")
+    if not simplefin_key_file:
+        simplefin_key_file_env = os.getenv("SIMPLEFIN_API_KEY_FILE")
+        if simplefin_key_file_env:
+            simplefin_key_file = Path(simplefin_key_file_env)
+
+    # if both provided, error out
     if simplefin_key and simplefin_key_file:
         typer.secho(
             "Provide only one of --simplefin-key or --simplefin-key-file",
@@ -24,6 +33,7 @@ def resolve_simplefin_key(
         )
         raise typer.Exit(code=2)
 
+    # if file provided, read it
     if simplefin_key_file:
         try:
             data = Path(simplefin_key_file).read_text(encoding="utf-8").strip()
@@ -62,12 +72,14 @@ def run(
     simplefin_key: Optional[str] = typer.Option(
         None,
         "--simplefin-key",
-        help="SimpleFIN API key (mutually exclusive with --simplefin-key-file)",
+        help="SimpleFIN API key (mutually exclusive with --simplefin-key-file).\n"
+             "Env var SIMPLEFIN_API_KEY can also be used.",
     ),
     simplefin_key_file: Optional[Path] = typer.Option(
         None,
         "--simplefin-key-file",
-        help="Path to file containing SimpleFIN API key",
+        help="Path to file containing SimpleFIN API key\n"
+             "Env var SIMPLEFIN_API_KEY_FILE can also be used.",
     ),
     days_history: int = typer.Option(
         14,
