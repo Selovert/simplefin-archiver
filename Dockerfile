@@ -27,4 +27,4 @@ RUN uv sync --locked --no-editable
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv tool install .
 
-ENTRYPOINT ["uv", "run", "simplefin_archive"]
+ENTRYPOINT ["entrypoint.sh"]
