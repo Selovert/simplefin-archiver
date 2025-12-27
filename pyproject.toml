@@ -1,7 +1,7 @@
 [project]
-name = "tassilo-simplefin"
+name = "simplefin-archiver"
 version = "0.1.0"
-description = "Add your description here"
+description = "Utility to pull and archive simplefin data"
 readme = "README.md"
 authors = [
     { name = "Tassilo Selover-Stephan", email = "tassilo@selover-stephan.com" }
@@ -23,7 +23,7 @@ dev = [
 ]
 
 [project.scripts]
-simplefin = "tassilo_simplefin.cli:app"
+simplefin-archive = "simplefin_archiver.cli:app"
 
 [build-system]
 requires = ["uv_build>=0.9.18,<0.10.0"]

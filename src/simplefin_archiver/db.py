@@ -3,7 +3,7 @@ from copy import deepcopy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from tassilo_simplefin import Account, QueryLog
+from simplefin_archiver import Account, QueryLog
 
 
 class SimpleFIN_DB:

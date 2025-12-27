@@ -10,7 +10,7 @@ from alembic import context
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-from tassilo_simplefin import SimpleFIN_DB  # noqa: E402
+from simplefin_archiver import SimpleFIN_DB  # noqa: E402
 if os.environ.get('DATABASE_URL'):
     config.set_main_option('sqlalchemy.url', os.environ.get('DATABASE_URL'))
 else:
@@ -25,7 +25,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from tassilo_simplefin.models import reg # noqa: E402
+from simplefin_archiver.models import reg # noqa: E402
 target_metadata = reg.metadata
 
 # other values from the config, defined by the needs of env.py,

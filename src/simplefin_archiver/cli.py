@@ -1,15 +1,9 @@
-#!/usr/bin/env python3
-"""Typer CLI to query accounts via SimpleFIN and persist to a local SQLite DB.
-
-Placed inside the `tassilo_simplefin` package so it can be installed as a console script.
-"""
-
 import logging
 from pathlib import Path
 from typing import Optional
 
 import typer
-from tassilo_simplefin import SimpleFIN, SimpleFIN_DB, QueryResult
+from simplefin_archiver import SimpleFIN, SimpleFIN_DB, QueryResult
 
 app = typer.Typer(help="Query SimpleFIN and persist accounts to a SQLite DB")
 

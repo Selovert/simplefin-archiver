@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import requests
 
-from tassilo_simplefin import Account, Balance, Transaction, QueryLog
+from simplefin_archiver import Account, Balance, Transaction, QueryLog
 
 from typing import NamedTuple
 
