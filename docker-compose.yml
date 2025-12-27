@@ -2,28 +2,27 @@ services:
   simplefin-archiver:
     build: .
     container_name: simplefin-archiver
-    # Uncomment examples below to enable persistent storage, envs or secrets.
-    #  - Persist data (DB) on host:
-    #    volumes:
-    #      - ./simplefin_data:/app/data
-    #
-    #  - Provide API key directly (dev only):
-    #    environment:
-    #      SIMPLEFIN_API_KEY: "your-api-key-here"
-    #
-    #  - Bind-mount secret file and point the app to it (recommended):
-    #    volumes:
-    #      - ./secrets/simplefin_api_key:/run/secrets/simplefin_api_key:ro
-    #    environment:
-    #      SIMPLEFIN_API_KEY_FILE: "/run/secrets/simplefin_api_key"
-    #
-    #  - Minimal env overrides:
-    #    environment:
-    #      SIMPLEFIN_DB_PATH: "/app/data/simplefin.db"
-    #      SIMPLEFIN_QUERY_FQCY_DAYS: "1"
+    volumes:
+      # Mount the database file outside the container
+      - ./simplefin_data:/app/data
+    environment:
+      # Provide API key directly
+      # - SIMPLEFIN_KEY="your-api-key-here"
+      # Provide API key via Docker secret (must enable secret below)
+      - SIMPLEFIN_KEY_FILE="/run/secrets/SIMPLEFIN_KEY"
+      # Db path inside the container (optional , default: /app/data/simplefin.db)
+      # - SIMPLEFIN_DB_PATH="/app/data/simplefin.db"
+      # Days of history to query (optional, default: 5)
+      # - QUERY_HISTORY_DAYS=5
+      # Cron schedule (optional, default: "0 0 * * *" for daily at midnight)
+      # - CRON_SCHEDULE="0 0 * * *"
+      # Query at startup (optional, default: "false")
+      - QUERY_AT_STARTUP="true"
+    secrets:
+      - SIMPLEFIN_KEY
     restart: unless-stopped
 
-    # Top-level secret example (uncomment to use):
-    # secrets:
-    #   simplefin_api_key:
-    #     file: ./secrets/simplefin_api_key
+secrets:
+  # Pass secrets to the container
+  SIMPLEFIN_KEY:
+    file: ./SIMPLEFIN_KEY
