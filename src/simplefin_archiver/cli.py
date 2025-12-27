@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -46,6 +47,18 @@ def resolve_simplefin_key(
     raise typer.Exit(code=2)
 
 
+def resolve_db_url(db: Optional[str]) -> str:
+    """Resolve database URL from parameter or environment variable."""
+    if db:
+        return db
+
+    db_path = os.getenv("SIMPLEFIN_DB_PATH")
+    if db_path:
+        return f"sqlite:///{db_path}"
+
+    return SimpleFIN_DB.connection_str
+
+
 @app.command()
 def run(
     days_history: int = typer.Option(
@@ -67,11 +80,12 @@ def run(
     init_logging(debug)
 
     password = resolve_simplefin_key(simplefin_key, simplefin_key_file)
+    db_url = resolve_db_url(db)
 
     conn = SimpleFIN(password, timeout=timeout, debug=debug)
     query_result: QueryResult = conn.query_accounts(days_history=days_history)
 
-    with SimpleFIN_DB(connection_str=db) as db_conn:
+    with SimpleFIN_DB(connection_str=db_url) as db_conn:
         db_conn.commit_accounts(accounts=query_result.accounts, query_log=query_result.querylog)
 
 

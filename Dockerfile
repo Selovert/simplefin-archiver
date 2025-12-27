@@ -8,6 +8,9 @@ ENV UV_NO_DEV=1
 ENV UV_TOOL_BIN_DIR=/opt/uv-bin/
 ENV PATH="/opt/uv-bin/bin:$PATH"
 
+# set the default db path
+ENV SIMPLEFIN_DB_PATH=/data/simplefin.db
+
 # copy pyproject
 COPY pyproject.toml /app/pyproject.toml
 # copy app over
