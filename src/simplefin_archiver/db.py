@@ -5,7 +5,7 @@ from simplefin_archiver import Account, QueryLog
 
 
 class SimpleFIN_DB:
-    connection_str: str = "sqlite:///SimpleFIN.db"
+    connection_str: str = "sqlite:///simplefin.db"
 
     def __init__(self, connection_str: str | None = None) -> None:
         self.connection_str = connection_str or SimpleFIN_DB.connection_str
