@@ -1,5 +1,18 @@
 FROM ghcr.io/astral-sh/uv:alpine
 
+# install dependencies
+RUN apk add --no-cache --update \
+    units
+
+# get rid of docs to save space
+RUN rm -rf /usr/share/doc /usr/share/man
+
+## USER-EDITABLE ENVIRONMENT VARIABLES ##
+# set the default db path
+ENV SIMPLEFIN_DB_PATH=/data/simplefin.db
+ENV SIMPLEFIN_QUERY_FQCY_DAYS=1
+
+## INTERNAL ENVIRONMENT VARIABLES ##
 # uv optimisations
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
@@ -8,8 +21,10 @@ ENV UV_NO_DEV=1
 ENV UV_TOOL_BIN_DIR=/opt/uv-bin/
 ENV PATH="/opt/uv-bin/:$PATH"
 
-# set the default db path
-ENV SIMPLEFIN_DB_PATH=/data/simplefin.db
+
+## BUILD STEPS ##
+# create data dir
+RUN mkdir -p "$(dirname "$SIMPLEFIN_DB_PATH")"
 
 # copy project files
 COPY pyproject.toml /app/pyproject.toml
@@ -32,4 +47,5 @@ RUN uv sync --locked --no-editable
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv tool install .
 
+## RUN ##
 ENTRYPOINT ["/app/entrypoint.sh"]
