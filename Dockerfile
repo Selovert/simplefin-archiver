@@ -9,7 +9,7 @@ RUN rm -rf /usr/share/doc /usr/share/man
 
 ## USER-EDITABLE ENVIRONMENT VARIABLES ##
 # set the default db path
-ENV SIMPLEFIN_DB_PATH=/data/simplefin.db
+ENV SIMPLEFIN_DB_PATH=/app/data/simplefin.db
 ENV SIMPLEFIN_QUERY_FQCY_DAYS=1
 
 ## INTERNAL ENVIRONMENT VARIABLES ##
