@@ -6,6 +6,7 @@ services:
       # Mount the database file outside the container
       - ./simplefin_data:/app/data
     environment:
+      - TZ=America/Los_Angeles
       # Provide API key directly
       # - SIMPLEFIN_KEY=your-api-key-here
       # Provide API key via Docker secret (must enable secret below)
