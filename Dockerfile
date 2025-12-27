@@ -1,4 +1,4 @@
-from ghcr.io/astral-sh/uv:debian
+FROM ghcr.io/astral-sh/uv:alpine
 
 # uv optimisations
 ENV UV_COMPILE_BYTECODE=1
