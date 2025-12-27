@@ -19,9 +19,9 @@ def resolve_simplefin_key(
 ) -> str:
     # default to env vars if not provided
     if not simplefin_key:
-        simplefin_key = os.getenv("SIMPLEFIN_API_KEY")
+        simplefin_key = os.getenv("SIMPLEFIN_KEY")
     if not simplefin_key_file:
-        simplefin_key_file_env = os.getenv("SIMPLEFIN_API_KEY_FILE")
+        simplefin_key_file_env = os.getenv("SIMPLEFIN_KEY_FILE")
         if simplefin_key_file_env:
             simplefin_key_file = Path(simplefin_key_file_env)
 
@@ -73,13 +73,13 @@ def run(
         None,
         "--simplefin-key",
         help="SimpleFIN API key (mutually exclusive with --simplefin-key-file).\n"
-             "Env var SIMPLEFIN_API_KEY can also be used.",
+             "Env var SIMPLEFIN_KEY can also be used.",
     ),
     simplefin_key_file: Optional[Path] = typer.Option(
         None,
         "--simplefin-key-file",
         help="Path to file containing SimpleFIN API key\n"
-             "Env var SIMPLEFIN_API_KEY_FILE can also be used.",
+             "Env var SIMPLEFIN_KEY_FILE can also be used.",
     ),
     days_history: int = typer.Option(
         14,
