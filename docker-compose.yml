@@ -18,7 +18,7 @@ services:
       # Cron schedule (optional, default: "0 0 * * *" for daily at midnight)
       # - CRON_SCHEDULE="0 0 * * *"
       # Query at startup (optional, default: "false")
-      - QUERY_AT_STARTUP=false
+      - QUERY_AT_STARTUP=true
     volumes:
       # Mount the database file outside the container
       - ./simplefin_data:/app/data
