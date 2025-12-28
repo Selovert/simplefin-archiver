@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
@@ -5,13 +7,16 @@ from simplefin_archiver import Account, Balance, QueryLog, Transaction
 
 
 class SimpleFIN_DB:
+    conn_timeout: int
     connection_str: str = "sqlite:///simplefin.db"
 
-    def __init__(self, db_path: str | None = None) -> None:
+    def __init__(self, db_path: Optional[str] = None, conn_timeout: int = 10) -> None:
         self.connection_str = f"sqlite:///{db_path}" if db_path else SimpleFIN_DB.connection_str
+        self.conn_timeout = conn_timeout
 
     def __enter__(self):
-        self.engine = create_engine(self.connection_str)
+        conn_args = {"timeout": self.conn_timeout}
+        self.engine = create_engine(self.connection_str, connect_args=conn_args)
         self.session = Session(self.engine)
         return self
 
