@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from simplefin_archiver import Account, Balance, QueryLog, Transaction
+from .models import Account, Balance, QueryLog, Transaction
 
 
 class SimpleFIN_DB:
@@ -50,25 +50,34 @@ class SimpleFIN_DB:
         return results
 
     def commit_accounts(self, accounts: list[Account], query_log: QueryLog = None) -> None:
-        for incoming_acct in accounts:
-            # Get the existing account from DB (if it exists)
-            db_acct = self.session.get(Account, incoming_acct.id)
+        for new_acct in accounts:
+            # Fetch the existing account
+            db_acct = self.session.get(Account, new_acct.id)
 
             if db_acct:
                 # Identify new transactions
-                db_tx_ids = {tx.id for tx in db_acct.transactions}
-                new_txs = [tx for tx in incoming_acct.transactions if tx.id not in db_tx_ids]
-                db_acct.transactions.extend(new_txs)
+                incoming_tx_ids = [tx.id for tx in new_acct.transactions]
+                stmt_tx = select(Transaction.id).where(Transaction.id.in_(incoming_tx_ids))
+                existing_tx_ids = set(self.session.scalars(stmt_tx).all())
+                new_txs = [tx for tx in new_acct.transactions if tx.id not in existing_tx_ids]
 
                 # Identify new balances
-                db_balance_ids = {bal.id for bal in db_acct.balances}
-                new_balances = [bal for bal in incoming_acct.balances if bal.id not in db_balance_ids]
+                incoming_bal_ids = [bal.id for bal in new_acct.balances]
+                stmt_bal = select(Balance.id).where(Balance.id.in_(incoming_bal_ids))
+                existing_bal_ids = set(self.session.scalars(stmt_bal).all())
+                new_balances = [bal for bal in new_acct.balances if bal.id not in existing_bal_ids]
+
+                # Add to the session-tracked object
+                db_acct.transactions.extend(new_txs)
                 db_acct.balances.extend(new_balances)
-                # (commit new state below)
+
+                db_acct.name = new_acct.name
+                db_acct.raw_json = new_acct.raw_json
             else:
-                # If it's a brand new account, just add it
-                self.session.add(incoming_acct)
+                # If it's truly new, add the whole tree
+                self.session.add(new_acct)
 
         if query_log:
             self.session.add(query_log)
+
         self.session.commit()
