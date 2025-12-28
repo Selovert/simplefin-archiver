@@ -22,9 +22,25 @@ class SimpleFIN_DB:
     def commit_accounts(
         self, accounts: list[Account], query_log: QueryLog = None
     ) -> None:
-        for account in accounts:
-            self.session.merge(account)
 
+        # Collect all transaction IDs from incoming accounts
+        incoming_tx_ids = {tx.id for account in accounts for tx in account.transactions}
+
+        # Only query the DB for IDs we might actually insert
+        existing_tx_ids = {
+            id_tuple[0]
+            for id_tuple in self.session.query(Transaction.id)
+            .filter(Transaction.id.in_(incoming_tx_ids))
+            .all()
+        }
+
+        # Merge accounts, transactions, and balances
+        for acct in accounts:
+            # filter out existing transactions before adding to db
+            acct.transactions = [tx for tx in acct.transactions if tx.id not in existing_tx_ids]
+            self.session.merge(acct)
+
+        # query logs to keep build history of raw json responses
         if query_log:
             self.session.add(query_log)
 
