@@ -10,8 +10,18 @@ class SimpleFIN_DB:
     conn_timeout: int
     connection_str: str = "sqlite:///simplefin.db"
 
-    def __init__(self, db_path: Optional[str] = None, conn_timeout: int = 10) -> None:
-        self.connection_str = f"sqlite:///{db_path}" if db_path else SimpleFIN_DB.connection_str
+    def __init__(
+        self,
+        connection_str: Optional[str] = None,
+        db_path: Optional[str] = None,
+        conn_timeout: int = 10,
+    ) -> None:
+        if connection_str:
+            self.connection_str = connection_str
+        elif db_path:
+            self.connection_str = f"sqlite:///{db_path}"
+        else:
+            self.connection_str = SimpleFIN_DB.connection_str
         self.conn_timeout = conn_timeout
 
     def __enter__(self):
