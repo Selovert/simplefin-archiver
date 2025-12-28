@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from simplefin_archiver import Account, Transaction, Balance, QueryLog
+from simplefin_archiver import Account, Balance, QueryLog, Transaction
 
 
 class SimpleFIN_DB:
