@@ -25,11 +25,6 @@ def list_accounts(db: SimpleFIN_DB = Depends(get_db)):
     return db.get_accounts()
 
 
-@app.get("/accounts_full", response_model=list[schemas.AccountDeepSchema])
-def list_accounts_full(db: SimpleFIN_DB = Depends(get_db)):
-    return db.get_accounts()
-
-
 @app.get("/transactions", response_model=list[schemas.TransactionSchema])
 def list_transactions(db: SimpleFIN_DB = Depends(get_db)):
     return db.get_transactions()

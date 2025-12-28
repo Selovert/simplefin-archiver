@@ -9,13 +9,10 @@ class BaseSchema(BaseModel):
 # --- ACCOUNT ---
 
 # A "Shallow" Account schema for use inside children
-class AccountBasicSchema(BaseSchema):
+class AccountSchema(BaseSchema):
     id: str
     bank: str
     name: str
-
-# The main Account schema (without lists)
-class AccountSchema(AccountBasicSchema):
     currency: str
 
 # --- TRANSACTION ---
@@ -30,7 +27,7 @@ class TransactionBasicSchema(BaseSchema):
 
 # Transaction including the Account info
 class TransactionSchema(TransactionBasicSchema):
-    account: AccountBasicSchema
+    account: AccountSchema
 
 # --- BALANCE ---
 
@@ -41,12 +38,11 @@ class BalanceBasicSchema(BaseSchema):
     balance_date: datetime
 
 # Balance including the Account info
-class BalanceSchema(BaseSchema):
-    account: AccountBasicSchema
+class BalanceSchema(BalanceBasicSchema):
+    account: AccountSchema
 
-# --- DEEP MODELS ---
-
-# The main Account schema including transactions and balances
-class AccountDeepSchema(AccountSchema):
-    transactions: list[TransactionBasicSchema]
-    balances: list[BalanceBasicSchema]
+# --- QUERY LOG ---
+class QueryLogSchema(BaseSchema):
+    id: str
+    query_time: datetime
+    days_history: int

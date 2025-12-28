@@ -109,14 +109,14 @@ def run(
     db_url = resolve_db_url(db)
 
     conn = SimpleFIN(password, timeout=timeout, debug=debug)
-    query_result: QueryResult = conn.query_accounts(days_history=days_history)
+    qr: QueryResult = conn.query_accounts(days_history=days_history)
 
     with SimpleFIN_DB(connection_str=db_url) as db_conn:
-        db_conn.commit_accounts(accounts=query_result.accounts, query_log=query_result.querylog)
+        db_conn.commit_query_result(qr)
 
-    txs = [tx for acct in query_result.accounts for tx in acct.transactions]
     typer.secho(
-        f"Saved {len(query_result.accounts)} accounts with {len(txs)} transactions to {db_url}",
+        f"Saved {len(qr.accounts)} accounts with "
+        + f"{len(qr.transactions)} transactions to {db_url}",
         fg=typer.colors.GREEN,
     )
 

@@ -12,6 +12,7 @@ wheels/
 # dev items
 *.db
 *.ipynb
+input
 
 # uv
 .python-version

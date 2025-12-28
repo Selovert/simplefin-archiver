@@ -24,18 +24,6 @@ class Account:
     name: Mapped[str]
     currency: Mapped[str]
     raw_json: Mapped[str] = mapped_column(repr=False)
-    transactions: Mapped[list["Transaction"]] = relationship(
-        back_populates="account",
-        cascade="all, delete-orphan",
-        default_factory=list,
-    )
-    balances: Mapped[list["Balance"]] = relationship(
-        back_populates="account",
-        cascade="all, delete-orphan",
-        default_factory=list,
-        lazy="selectin"  # This ensures data is loaded before the session closes
-    )
-
 
 @reg.mapped_as_dataclass
 class Balance:
@@ -47,7 +35,6 @@ class Balance:
     raw_json: Mapped[str] = mapped_column(repr=False)
     available_balance: Mapped[Optional[float]] = mapped_column(default=None)
     account: Mapped["Account"] = relationship(
-        back_populates="balances",
         default=None,
         init=False,
         lazy="selectin"  # This ensures data is loaded before the session closes
@@ -76,7 +63,6 @@ class Transaction:
     transacted_at: Mapped[Optional[datetime]] = mapped_column(default=None)
     extra_attrs: Mapped[Optional[str]] = mapped_column(default=None)
     account: Mapped["Account"] = relationship(
-        back_populates="transactions",
         default=None,
         init=False,
         lazy="selectin"  # This ensures data is loaded before the session closes

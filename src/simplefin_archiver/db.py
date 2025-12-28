@@ -3,7 +3,8 @@ from typing import Optional
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from .models import Account, Balance, QueryLog, Transaction
+from .models import Account, Balance, Transaction
+from .simplefin import QueryResult
 
 
 class SimpleFIN_DB:
@@ -49,35 +50,46 @@ class SimpleFIN_DB:
         results = self.session.scalars(stmt).all()
         return results
 
-    def commit_accounts(self, accounts: list[Account], query_log: QueryLog = None) -> None:
-        for new_acct in accounts:
-            # Fetch the existing account
-            db_acct = self.session.get(Account, new_acct.id)
+    def commit_query_result(self, query_result: QueryResult) -> None:
+        # Save query log
+        self.session.merge(query_result.querylog)
 
-            if db_acct:
-                # Identify new transactions
-                incoming_tx_ids = [tx.id for tx in new_acct.transactions]
-                stmt_tx = select(Transaction.id).where(Transaction.id.in_(incoming_tx_ids))
-                existing_tx_ids = set(self.session.scalars(stmt_tx).all())
-                new_txs = [tx for tx in new_acct.transactions if tx.id not in existing_tx_ids]
+        # Update accounts and overwrite existing ones
+        for acct in query_result.accounts:
+            self.session.merge(acct)
 
-                # Identify new balances
-                incoming_bal_ids = [bal.id for bal in new_acct.balances]
-                stmt_bal = select(Balance.id).where(Balance.id.in_(incoming_bal_ids))
-                existing_bal_ids = set(self.session.scalars(stmt_bal).all())
-                new_balances = [bal for bal in new_acct.balances if bal.id not in existing_bal_ids]
+        # Create a quick lookup map: { id: AccountObject }
+        acct_map = {acct.id: acct for acct in query_result.accounts}
 
-                # Add to the session-tracked object
-                db_acct.transactions.extend(new_txs)
-                db_acct.balances.extend(new_balances)
+        # Save new balances only (don't want to overwrite)
+        incoming_bal_ids = [bal.id for bal in query_result.balances]
+        if incoming_bal_ids:
+            # Query the DB for which of these IDs already exist
+            stmt = select(Balance.id).where(Balance.id.in_(incoming_bal_ids))
+            existing_bal_ids = set(self.session.scalars(stmt).all())
 
-                db_acct.name = new_acct.name
-                db_acct.raw_json = new_acct.raw_json
-            else:
-                # If it's truly new, add the whole tree
-                self.session.add(new_acct)
+            # Add only the ones not found in the DB
+            for bal in query_result.balances:
+                if bal.id not in existing_bal_ids:
+                    bal.account = acct_map[bal.account_id]
+                    self.session.merge(bal)
 
-        if query_log:
-            self.session.add(query_log)
+        # Save new transactions only (don't want to overwrite)
+        incoming_tx_ids = [tx.id for tx in query_result.transactions]
+        if incoming_tx_ids:
+            # Query the DB for which of these IDs already exist
+            stmt = select(Transaction.id).where(Transaction.id.in_(incoming_tx_ids))
+            existing_tx_ids = set(self.session.scalars(stmt).all())
 
-        self.session.commit()
+            # Add only the ones not found in the DB
+            for tx in query_result.transactions:
+                if tx.id not in existing_tx_ids:
+                    tx.account = acct_map[tx.account_id]
+                    self.session.merge(tx)
+
+        # Commit all changes
+        try:
+            self.session.commit()
+        except Exception:
+            self.session.rollback()
+            raise

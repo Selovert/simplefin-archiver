@@ -27,6 +27,8 @@ BALANCE_DUMP_EXLUDES = {  # keys to exclude from raw_json dump
 
 class QueryResult(NamedTuple):
     accounts: list[Account]
+    balances: list[Balance]
+    transactions: list[Transaction]
     querylog: QueryLog
 
 
@@ -77,6 +79,8 @@ class SimpleFIN:
                 logging.debug(a)
 
         accounts: list[Account] = []
+        balances: list[Balance] = []
+        transactions: list[Transaction] = []
         for acct_raw in accts_raw:
             # get account name
             acct_name: str = acct_raw["name"]
@@ -96,25 +100,24 @@ class SimpleFIN:
                 name=acct_name,
                 currency=acct_raw["currency"],
                 raw_json=acct_raw_json,
-                transactions=[],
             )
             if self.debug:
                 logging.debug(f"Loaded account: {acct}")
+            accounts.append(acct)
 
             # balance
             if self.debug:
                 logging.debug(f"Loading balance for account {acct.id}...")
             balance = SimpleFIN._get_balance(acct_raw, self.debug)
-            acct.balances.append(balance)
+            balances.append(balance)
 
             # transactions
             if self.debug:
                 logging.debug(f"Loading transactions for account {acct.id}...")
             txs = SimpleFIN._get_transactions(acct_raw, self.debug)
             logging.info(f"Loaded {len(txs):>3} transactions for account {acct.name}")
-            acct.transactions = txs
+            transactions.extend(txs)
 
-            accounts.append(acct)
 
         # create query log
         q_log = QueryLog(
@@ -125,7 +128,7 @@ class SimpleFIN:
         if self.debug:
             logging.debug(f"Created query log: {q_log}")
 
-        return QueryResult(accounts=accounts, querylog=q_log)
+        return QueryResult(accounts, balances, transactions, q_log)
 
     @staticmethod
     def _get_balance(acct_raw: dict, debug: bool = False) -> list[Transaction]:
