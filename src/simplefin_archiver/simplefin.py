@@ -139,8 +139,6 @@ class SimpleFIN:
                 f"Couldn't get balance date for {acct_name}: {ex}.\nDefaulting to today."
             )
             balance_date = datetime.now()
-        # scrub time portion
-        balance_date = balance_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
         # get the balance
         try:
