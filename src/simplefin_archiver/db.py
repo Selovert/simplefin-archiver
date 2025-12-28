@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from simplefin_archiver import Account, QueryLog
+from simplefin_archiver import Account, Transaction, Balance, QueryLog
 
 
 class SimpleFIN_DB:
@@ -18,6 +18,21 @@ class SimpleFIN_DB:
     def __exit__(self, exc_type, exc_value, traceback):
         self.session.close()
         self.engine.dispose()
+
+    def get_accounts(self) -> list[Account]:
+        stmt = select(Account).order_by(Account.bank, Account.name)
+        results = self.session.scalars(stmt).all()
+        return results
+
+    def get_transactions(self) -> list[Transaction]:
+        stmt = select(Transaction).order_by(Transaction.transacted_at.desc())
+        results = self.session.scalars(stmt).all()
+        return results
+
+    def get_balances(self) -> list[Balance]:
+        stmt = select(Balance).order_by(Balance.balance_date.desc())
+        results = self.session.scalars(stmt).all()
+        return results
 
     def commit_accounts(
         self, accounts: list[Account], query_log: QueryLog = None
