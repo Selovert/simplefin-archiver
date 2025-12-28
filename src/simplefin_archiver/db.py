@@ -39,29 +39,26 @@ class SimpleFIN_DB:
         results = self.session.scalars(stmt).all()
         return results
 
-    def commit_accounts(
-        self, accounts: list[Account], query_log: QueryLog = None
-    ) -> None:
+    def commit_accounts(self, accounts: list[Account], query_log: QueryLog = None) -> None:
+        for incoming_acct in accounts:
+            # Get the existing account from DB (if it exists)
+            db_acct = self.session.get(Account, incoming_acct.id)
 
-        # Collect all transaction IDs from incoming accounts
-        incoming_tx_ids = {tx.id for account in accounts for tx in account.transactions}
+            if db_acct:
+                # Identify new transactions
+                db_tx_ids = {tx.id for tx in db_acct.transactions}
+                new_txs = [tx for tx in incoming_acct.transactions if tx.id not in db_tx_ids]
+                db_acct.transactions.extend(new_txs)
 
-        # Only query the DB for IDs we might actually insert
-        existing_tx_ids = {
-            id_tuple[0]
-            for id_tuple in self.session.query(Transaction.id)
-            .filter(Transaction.id.in_(incoming_tx_ids))
-            .all()
-        }
+                # Identify new balances
+                db_balance_ids = {bal.id for bal in db_acct.balances}
+                new_balances = [bal for bal in incoming_acct.balances if bal.id not in db_balance_ids]
+                db_acct.balances.extend(new_balances)
+                # (commit new state below)
+            else:
+                # If it's a brand new account, just add it
+                self.session.add(incoming_acct)
 
-        # Merge accounts, transactions, and balances
-        for acct in accounts:
-            # filter out existing transactions before adding to db
-            acct.transactions = [tx for tx in acct.transactions if tx.id not in existing_tx_ids]
-            self.session.merge(acct)
-
-        # query logs to keep build history of raw json responses
         if query_log:
             self.session.add(query_log)
-
         self.session.commit()
