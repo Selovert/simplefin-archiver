@@ -2,9 +2,6 @@ services:
   simplefin-archiver:
     build: .
     container_name: simplefin-archiver
-    volumes:
-      # Mount the database file outside the container
-      - ./simplefin_data:/app/data
     environment:
       - TZ=America/Los_Angeles
       # Provide API key directly
@@ -19,6 +16,9 @@ services:
       # - CRON_SCHEDULE="0 0 * * *"
       # Query at startup (optional, default: "false")
       - QUERY_AT_STARTUP=true
+    volumes:
+      # Mount the database file outside the container
+      - ./simplefin_data:/app/data
     secrets:
       - SIMPLEFIN_KEY
     restart: unless-stopped
