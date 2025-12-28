@@ -2,6 +2,9 @@ services:
   simplefin-archiver:
     build: .
     container_name: simplefin-archiver
+    ports:
+      # Expose port for FastAPI (optional)
+      - "8000:8000"
     environment:
       - TZ=America/Los_Angeles
       # Provide API key directly
