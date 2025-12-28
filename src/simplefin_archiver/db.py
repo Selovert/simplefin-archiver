@@ -7,8 +7,8 @@ from simplefin_archiver import Account, QueryLog
 class SimpleFIN_DB:
     connection_str: str = "sqlite:///simplefin.db"
 
-    def __init__(self, connection_str: str | None = None) -> None:
-        self.connection_str = connection_str or SimpleFIN_DB.connection_str
+    def __init__(self, db_path: str | None = None) -> None:
+        self.connection_str = f"sqlite:///{db_path}" if db_path else SimpleFIN_DB.connection_str
 
     def __enter__(self):
         self.engine = create_engine(self.connection_str)
