@@ -49,5 +49,9 @@ RUN uv sync --locked --no-editable
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv tool install .
 
+## HEALTHCHECK ##
+HEALTHCHECK --interval=60s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/health_check || exit 1
+
 ## RUN ##
 ENTRYPOINT ["/app/entrypoint.sh"]

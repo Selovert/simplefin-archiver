@@ -30,9 +30,14 @@ if [ "${QUERY_AT_STARTUP:-false}" = "true" ]; then
     simplefin-archive --days-history "$QUERY_HISTORY_DAYS"
 fi
 
-# Create crontab entry
+# --- Create crontab entry ---
 CRON_CMD="simplefin-archive --days-history $QUERY_HISTORY_DAYS > /proc/1/fd/1 2>&1"
 echo "$CRON_SCHEDULE . /etc/environment; $CRON_CMD" > /etc/crontabs/root
+
+# --- Start FastAPI ---
+echo "Starting FastAPI server..."
+uvicorn simplefin_archiver.api:app --host 0.0.0.0 --port 8000 &
+FASTAPI_PID=$!
 
 # --- Start Daemon ---
 echo "Starting cron daemon with schedule: $CRON_SCHEDULE"
