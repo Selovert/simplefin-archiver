@@ -33,6 +33,7 @@ class Account:
         back_populates="account",
         cascade="all, delete-orphan",
         default_factory=list,
+        lazy="selectin"  # This ensures data is loaded before the session closes
     )
 
 
@@ -49,6 +50,7 @@ class Balance:
         back_populates="balances",
         default=None,
         init=False,
+        lazy="selectin"  # This ensures data is loaded before the session closes
     )
 
     def __post_init__(self):
@@ -77,6 +79,7 @@ class Transaction:
         back_populates="transactions",
         default=None,
         init=False,
+        lazy="selectin"  # This ensures data is loaded before the session closes
     )
 
     def __post_init__(self):
