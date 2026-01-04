@@ -7,6 +7,7 @@ import requests
 from .models import Account, Balance, QueryLog, Transaction
 from .models import QueryResult
 
+DEFAULT_DAYS_HISTORY = 14
 
 ACCT_DUMP_EXLUDES = {  # keys to exclude from raw_json dump
     "balance",

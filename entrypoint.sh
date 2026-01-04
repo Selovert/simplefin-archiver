@@ -27,11 +27,11 @@ chmod 400 /etc/environment
 # --- Startup Run ---
 if [ "${QUERY_AT_STARTUP:-false}" = "true" ]; then
     echo "Running initial data fetch at startup..."
-    simplefin-archive --days-history "$QUERY_HISTORY_DAYS"
+    simplefin-archive
 fi
 
 # --- Create crontab entry ---
-CRON_CMD="simplefin-archive --days-history $QUERY_HISTORY_DAYS > /proc/1/fd/1 2>&1"
+CRON_CMD="simplefin-archive > /proc/1/fd/1 2>&1"
 echo "$CRON_SCHEDULE . /etc/environment; $CRON_CMD" > /etc/crontabs/root
 
 # --- Start FastAPI ---
