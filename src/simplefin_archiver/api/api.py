@@ -2,9 +2,9 @@ from os import getenv
 
 from fastapi import FastAPI, Depends
 
-from .models import Balance
-from .db import SimpleFIN_DB
-from . import schemas
+from simplefin_archiver.models import Balance
+from simplefin_archiver.db import SimpleFIN_DB
+from simplefin_archiver import schemas
 
 app = FastAPI()
 
