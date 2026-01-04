@@ -3,6 +3,7 @@ FROM ghcr.io/astral-sh/uv:alpine
 # install dependencies
 RUN apk add --no-cache --update \
     tzdata
+    curl
 
 # get rid of docs to save space
 RUN rm -rf /usr/share/doc /usr/share/man
