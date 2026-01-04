@@ -2,7 +2,7 @@ FROM ghcr.io/astral-sh/uv:alpine
 
 # install dependencies
 RUN apk add --no-cache --update \
-    tzdata
+    tzdata \
     curl
 
 # get rid of docs to save space
