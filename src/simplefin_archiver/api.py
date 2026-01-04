@@ -2,6 +2,7 @@ from os import getenv
 
 from fastapi import FastAPI, Depends
 
+from .models import Balance
 from .db import SimpleFIN_DB
 from . import schemas
 
@@ -33,3 +34,10 @@ def list_transactions(db: SimpleFIN_DB = Depends(get_db)):
 @app.get("/balances", response_model=list[schemas.BalanceSchema])
 def list_balances(db: SimpleFIN_DB = Depends(get_db)):
     return db.get_balances()
+
+
+@app.post("/balances", response_model=schemas.BalanceSchema)
+def create_balance(balance_data: schemas.BalanceCreateSchema, db: SimpleFIN_DB = Depends(get_db)):
+    # Convert Pydantic schema to SQLAlchemy model
+    new_balance = Balance(**balance_data.model_dump())
+    return db.add_balance(new_balance)

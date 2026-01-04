@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from .models import Account, Balance, Transaction
 from .simplefin import QueryResult
 
-
 class SimpleFIN_DB:
     conn_timeout: int
     connection_str: str = "sqlite:///simplefin.db"
@@ -49,6 +48,17 @@ class SimpleFIN_DB:
         stmt = select(Balance).order_by(Balance.balance_date.desc())
         results = self.session.scalars(stmt).all()
         return results
+
+    def add_balance(self, balance: Balance) -> Balance:
+        merged_balance = self.session.merge(balance)
+        try:
+            self.session.commit()
+            # Refresh to load the relationship 'account' for the response schema
+            self.session.refresh(merged_balance)
+            return merged_balance
+        except Exception:
+            self.session.rollback()
+            raise
 
     def commit_query_result(self, query_result: QueryResult) -> None:
         # Save query log

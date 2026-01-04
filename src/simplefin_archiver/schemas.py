@@ -37,9 +37,19 @@ class BalanceBasicSchema(BaseSchema):
     balance: float
     balance_date: datetime
 
+
 # Balance including the Account info
 class BalanceSchema(BalanceBasicSchema):
     account: AccountSchema
+
+
+class BalanceCreateSchema(BaseSchema):
+    id: str
+    account_id: str
+    balance: float
+    balance_date: datetime
+    raw_json: str
+    available_balance: Optional[float] = None
 
 # --- QUERY LOG ---
 class QueryLogSchema(BaseSchema):
