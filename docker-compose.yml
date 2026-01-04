@@ -7,12 +7,21 @@ services:
       - "8000:8000"
     environment:
       - TZ=America/Los_Angeles
-      # Provide API key directly
+      ###### SECURITY ######
+      # Provide simplefin API key directly
       # - SIMPLEFIN_KEY=your-api-key-here
-      # Provide API key via Docker secret (must enable secret below)
+      # Provide simplefin API key via Docker secret (must enable secret below)
       - SIMPLEFIN_KEY_FILE=/run/secrets/SIMPLEFIN_KEY
+      # Provide simplefin API key directly
+      # - ARCHIVER_API_KEY=your-api-key-here
+      # Provide archiver API key via Docker secret (must enable secret below)
+      - ARCHIVER_API_KEY_FILE=/run/secrets/ARCHIVER_API_KEY
+
+      ###### DATABASE ######
       # Db path inside the container (optional , default: /app/data/simplefin.db)
       # - SIMPLEFIN_DB_PATH=/app/data/simplefin.db
+
+      ###### QUERY CONFIGS ######
       # Days of history to query (optional, default: 5)
       # - QUERY_HISTORY_DAYS=5
       # Cron schedule (optional, default: "0 0 * * *" for daily at midnight)
@@ -24,9 +33,12 @@ services:
       - ./simplefin_data:/app/data
     secrets:
       - SIMPLEFIN_KEY
+      - ARCHIVER_API_KEY
     restart: unless-stopped
 
 secrets:
   # Pass secrets to the container
   SIMPLEFIN_KEY:
     file: ./SIMPLEFIN_KEY
+  ARCHIVER_API_KEY:
+    file: ./ARCHIVER_API_KEY
