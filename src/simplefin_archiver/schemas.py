@@ -2,12 +2,13 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
+
 # Base configuration to share across all models
 class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-# --- ACCOUNT ---
 
+# --- ACCOUNT ---
 # A "Shallow" Account schema for use inside children
 class AccountSchema(BaseSchema):
     id: str
@@ -15,8 +16,8 @@ class AccountSchema(BaseSchema):
     name: str
     currency: str
 
-# --- TRANSACTION ---
 
+# --- TRANSACTION ---
 # Base transaction fields
 class TransactionBasicSchema(BaseSchema):
     id: str
@@ -25,12 +26,13 @@ class TransactionBasicSchema(BaseSchema):
     description: str
     transacted_at: Optional[datetime]
 
+
 # Transaction including the Account info
 class TransactionSchema(TransactionBasicSchema):
     account: AccountSchema
 
-# --- BALANCE ---
 
+# --- BALANCE ---
 # Base balance fields
 class BalanceBasicSchema(BaseSchema):
     id: str
