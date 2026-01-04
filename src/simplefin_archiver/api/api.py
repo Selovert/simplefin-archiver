@@ -1,10 +1,11 @@
 from os import getenv
 
-from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi import FastAPI, Depends, HTTPException, Security, BackgroundTasks
 from fastapi.security import APIKeyHeader
 
 from simplefin_archiver.models import Balance
 from simplefin_archiver.db import SimpleFIN_DB
+from simplefin_archiver.cli import run_archiver_backend
 from simplefin_archiver import schemas
 
 app = FastAPI()
@@ -80,3 +81,9 @@ def create_balance(balance_data: schemas.BalanceCreateSchema,
     # Convert Pydantic schema to SQLAlchemy model
     new_balance = Balance(**balance_data.model_dump())
     return db.add_balance(new_balance)
+
+@app.post("/trigger_update")
+def trigger_update(background_tasks: BackgroundTasks,
+                   token: str = Depends(verify_token)):
+    background_tasks.add_task(run_archiver_backend)
+    return {"message": "Archive update triggered"}

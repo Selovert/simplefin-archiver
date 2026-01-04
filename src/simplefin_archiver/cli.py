@@ -26,14 +26,6 @@ def resolve_simplefin_key(
         if simplefin_key_file_env:
             simplefin_key_file = Path(simplefin_key_file_env)
 
-    # if both provided, error out
-    if simplefin_key and simplefin_key_file:
-        typer.secho(
-            "Provide only one of --simplefin-key or --simplefin-key-file",
-            fg=typer.colors.RED,
-        )
-        raise typer.Exit(code=2)
-
     # if file provided, read it
     if simplefin_key_file:
         try:
@@ -82,6 +74,36 @@ def resolve_db_url(db: Optional[str]) -> str:
 
     return SimpleFIN_DB.connection_str
 
+def run_archiver_backend(
+    simplefin_key: Optional[str] = None,
+    simplefin_key_file: Optional[Path] = None,
+    days_history: Optional[int] = None,
+    db: Optional[str] = None,
+    timeout: int = 20,
+    debug: bool = False,
+) -> str:
+    """Core logic without Typer dependencies."""
+    init_logging(debug)
+    password = resolve_simplefin_key(simplefin_key, simplefin_key_file)
+    db_url = resolve_db_url(db)
+
+    if not days_history:
+        days_history = resolve_days_history()
+
+    conn = SimpleFIN(password, timeout=timeout, debug=debug)
+    qr: QueryResult = conn.query_accounts(days_history=days_history)
+
+    with SimpleFIN_DB(connection_str=db_url) as db_conn:
+        db_conn.commit_query_result(qr)
+
+    message = (
+        f"Saved {len(qr.accounts)} accounts with "
+        f"{len(qr.transactions)} transactions to {db_url}"
+    )
+
+    typer.secho(message, fg=typer.colors.GREEN)
+    return message
+
 
 @app.command()
 def run_archiver(
@@ -89,13 +111,13 @@ def run_archiver(
         None,
         "--simplefin-key",
         help="SimpleFIN API key (mutually exclusive with --simplefin-key-file).\n"
-             "Env var SIMPLEFIN_KEY can also be used.",
+        "Env var SIMPLEFIN_KEY can also be used.",
     ),
     simplefin_key_file: Optional[Path] = typer.Option(
         None,
         "--simplefin-key-file",
         help="Path to file containing SimpleFIN API key\n"
-             "Env var SIMPLEFIN_KEY_FILE can also be used.",
+        "Env var SIMPLEFIN_KEY_FILE can also be used.",
     ),
     days_history: Optional[int] = typer.Option(
         None,
@@ -119,28 +141,8 @@ def run_archiver(
     ),
 ) -> None:
     """Query SimpleFIN and save accounts to the given DB."""
-    init_logging(debug)
+    return run_archiver_backend(simplefin_key, simplefin_key_file, days_history, db, timeout, debug)
 
-    password = resolve_simplefin_key(simplefin_key, simplefin_key_file)
-    db_url = resolve_db_url(db)
-
-    if not days_history:
-        days_history = resolve_days_history()
-
-    conn = SimpleFIN(password, timeout=timeout, debug=debug)
-    qr: QueryResult = conn.query_accounts(days_history=days_history)
-
-    with SimpleFIN_DB(connection_str=db_url) as db_conn:
-        db_conn.commit_query_result(qr)
-
-    message: str = (
-        f"Saved {len(qr.accounts)} accounts with "
-        f"{len(qr.transactions)} transactions to {db_url}"
-    )
-
-    typer.secho(message,fg=typer.colors.GREEN,)
-
-    return message
 
 if __name__ == "__main__":
     app()
