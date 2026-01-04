@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 
 import requests
 
-from simplefin_archiver import Account, Balance, Transaction, QueryLog
+from .models import Account, Balance, QueryLog, Transaction
+from .models import QueryResult
 
-from typing import NamedTuple
 
 ACCT_DUMP_EXLUDES = {  # keys to exclude from raw_json dump
     "balance",
@@ -23,14 +23,6 @@ BALANCE_DUMP_EXLUDES = {  # keys to exclude from raw_json dump
     "transactions",
     "holdings",
 }
-
-
-class QueryResult(NamedTuple):
-    accounts: list[Account]
-    balances: list[Balance]
-    transactions: list[Transaction]
-    querylog: QueryLog
-
 
 class SimpleFIN:
     __API_URL: str

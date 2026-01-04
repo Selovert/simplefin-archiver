@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, NamedTuple
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
@@ -72,3 +72,9 @@ class Transaction:
         if self.transacted_at is None:
             logging.debug(f"Auto-filling transacted_at for transaction {self.id}")
             self.transacted_at = self.posted
+
+class QueryResult(NamedTuple):
+    accounts: list[Account]
+    balances: list[Balance]
+    transactions: list[Transaction]
+    querylog: QueryLog

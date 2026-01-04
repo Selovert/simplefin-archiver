@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from .models import Account, Balance, Transaction
-from .simplefin import QueryResult
+from .models import QueryResult
 
 class SimpleFIN_DB:
     conn_timeout: int
