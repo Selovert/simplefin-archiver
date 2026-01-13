@@ -1,0 +1,45 @@
+name: budget_flows
+prefect-version: 3.0.0
+
+build: null
+
+# runs inside the container every time a job starts
+pull:
+  - prefect.deployments.steps.git_clone:
+      repository: https://github.com/Selovert/simplefin-archiver.git
+      branch: main
+      # access_token: "{{ prefect.blocks.secret.github-token }}"
+
+  - prefect.deployments.steps.run_shell_script:
+      id: install-deps
+      script: |
+        pip install uv
+        # Installs into system python, hitting the mounted cache first
+        uv pip install --system .
+      stream_output: true
+
+# reusable configs
+definitions:
+  work_pools:
+    budget_docker_config: &docker_common
+      name: docker-pool
+      job_variables:
+        image: python:3.11-slim
+        networks:
+          - prefect
+          - actual_budget
+        # mount host cache to the container cache
+        volumes:
+          - "/opt/budget/uv-cache:/root/.cache/uv"
+        env:
+          UV_CACHE_DIR: "/root/.cache/uv"
+          PREFECT_LOGGING_LEVEL: INFO
+
+deployments:
+  - name: hello-world
+    entrypoint: flows/hellow_world.py:pull_balances_flow
+    # schedule:
+    #   cron: "0 6 * * *"
+    #   timezone: "America/New_York"
+    # Use the anchor above to copy common settings
+    work_pool: *docker_common
