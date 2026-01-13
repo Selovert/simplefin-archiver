@@ -1,6 +1,6 @@
 [project]
 name = "simplefin-archiver"
-version = "0.1.0"
+version = "0.0.0"
 description = "Utility to pull and archive simplefin data"
 readme = "README.md"
 authors = [
