@@ -29,7 +29,7 @@ class SimpleFIN:
     __API_URL: str
     __api_user: str
     __api_passwd: str
-    __timeout: int
+    _timeout: int
     debug: bool
 
     def __init__(self, api_token: str, debug: bool = False, timeout: int = 10):
@@ -37,7 +37,7 @@ class SimpleFIN:
         self.__api_user = api_token.split(":")[0]
         self.__api_passwd = api_token.split(":")[1]
         self.debug = debug
-        self.__timeout = 10
+        self._timeout = timeout
 
     def query_accounts(self, days_history: int = 7) -> QueryResult:
         start_date = datetime.now() - timedelta(days=days_history)
@@ -48,7 +48,7 @@ class SimpleFIN:
             url=f"{self.__API_URL}/accounts",
             auth=(self.__api_user, self.__api_passwd),
             params={"start-date": f"{int(start_date.timestamp())}"},
-            timeout=self.__timeout,
+            timeout=self._timeout,
         )
         if resp.status_code != 200:
             if self.debug:
