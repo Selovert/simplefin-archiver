@@ -32,7 +32,7 @@ class SimpleFIN:
     _timeout: int
     debug: bool
 
-    def __init__(self, api_token: str, debug: bool = False, timeout: int = 10):
+    def __init__(self, api_token: str, debug: bool = False, timeout: int = 30):
         self.__API_URL = "https://beta-bridge.simplefin.org/simplefin"
         self.__api_user = api_token.split(":")[0]
         self.__api_passwd = api_token.split(":")[1]
