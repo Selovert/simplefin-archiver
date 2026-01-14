@@ -8,6 +8,18 @@ from simplefin_archiver.db import SimpleFIN_DB
 from simplefin_archiver.cli import run_archiver_backend
 from simplefin_archiver import schemas
 
+import logging
+
+
+# suppress specific endpoint logging
+class EndpointFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.getMessage().find("/health_check") == -1
+
+
+# Add the filter to the uvicorn access logger
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
+
 app = FastAPI()
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
