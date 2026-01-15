@@ -1,3 +1,5 @@
+import os
+import logging
 from typing import Optional
 
 from sqlalchemy import create_engine, select
@@ -6,9 +8,38 @@ from sqlalchemy.orm import Session
 from .models import Account, Balance, Transaction
 from .models import QueryResult
 
+def get_db_connection_string() -> str:
+    """
+    Priority:
+    1. Explicit function argument (handled by callers)
+    2. POSTGRES_PASSWORD env var (Constructs full Postgres URL)
+    3. SIMPLEFIN_DB_PATH env var (File path or custom URL)
+    4. Default SQLite file
+    """
+
+    # Check for Postgres credentials (Env vars specific to your container setup)
+    pg_pass = os.getenv("POSTGRES_PASSWORD")
+    if pg_pass:
+        user = os.getenv("POSTGRES_USER", "simplefin")
+        host = os.getenv("POSTGRES_HOST", "localhost")
+        port = os.getenv("POSTGRES_PORT", "5432")
+        dbname = os.getenv("POSTGRES_DB", "simplefin_db")
+
+        # Construct the safe URL
+        logging.info(f"Connecting to postgres {user}@{host}:{port}/{dbname}")
+        return f"postgresql+psycopg2://{user}:{pg_pass}@{host}:{port}/{dbname}"
+
+    # Fallback to your old logic
+    db_path = os.getenv("SIMPLEFIN_DB_PATH")
+    if db_path:
+        logging.info(f"Connecting to sqlite at path {db_path}")
+        return f"sqlite:///{db_path}"
+
+    logging.info("Connecting to sqlite at default simplefin.db")
+    return "sqlite:///simplefin.db"
+
 class SimpleFIN_DB:
     conn_timeout: int
-    connection_str: str = "sqlite:///simplefin.db"
 
     def __init__(
         self,
@@ -21,7 +52,7 @@ class SimpleFIN_DB:
         elif db_path:
             self.connection_str = f"sqlite:///{db_path}"
         else:
-            self.connection_str = SimpleFIN_DB.connection_str
+            self.connection_str = get_db_connection_string()
         self.conn_timeout = conn_timeout
 
     def __enter__(self):
@@ -42,10 +73,32 @@ class SimpleFIN_DB:
         results = self.session.scalars(stmt).all()
         return results
 
+    def add_account(self, account: Account) -> Account:
+        merged_account = self.session.merge(account)
+        try:
+            self.session.commit()
+            self.session.refresh(merged_account)
+            return merged_account
+        except Exception:
+            self.session.rollback()
+            raise
+
     def get_transactions(self) -> list[Transaction]:
         stmt = select(Transaction).order_by(Transaction.transacted_at.desc())
         results = self.session.scalars(stmt).all()
         return results
+
+    def add_transaction(self, transaction: Transaction) -> Balance:
+        merged_tx = self.session.merge(transaction)
+        try:
+            self.session.commit()
+            # Refresh to load the relationship 'account' for the response schema
+            self.session.refresh(merged_tx)
+            return merged_tx
+        except Exception:
+            self.session.rollback()
+            raise
+
 
     def get_balances(self) -> list[Balance]:
         stmt = select(Balance).order_by(Balance.balance_date.desc())

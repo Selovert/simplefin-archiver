@@ -6,6 +6,7 @@ from typing import Optional
 import typer
 from simplefin_archiver import SimpleFIN, SimpleFIN_DB, QueryResult
 from simplefin_archiver.simplefin import DEFAULT_DAYS_HISTORY, DEFAULT_TIMEOUT
+from simplefin_archiver.db import get_db_connection_string
 
 app = typer.Typer(help="Query SimpleFIN and persist accounts to a SQLite DB")
 
@@ -53,7 +54,7 @@ def resolve_days_history():
         env_val = int(os.getenv("QUERY_HISTORY_DAYS"))
     except Exception as e:
         typer.secho(f"Failed to QUERY_HISTORY_DAYS: {e}", fg=typer.colors.RED)
-        logging.info(f"Querying {env_val} days per DEFAULT_DAYS_HISTORY")
+        logging.info(f"Querying {DEFAULT_DAYS_HISTORY} days per DEFAULT_DAYS_HISTORY")
         return DEFAULT_DAYS_HISTORY
     if env_val:
         logging.info(f"Querying {env_val} days per QUERY_HISTORY_DAYS")
@@ -63,20 +64,14 @@ def resolve_days_history():
         return DEFAULT_DAYS_HISTORY
 
 
-def resolve_db_url(db: Optional[str]) -> str:
-    """Resolve database URL from parameter or environment variable."""
-    if db:
-        return db
+def resolve_db_url(db_conn_str: Optional[str]) -> str:
+    """Resolve database URL from parameter or environment."""
+    if db_conn_str:
+        return db_conn_str
+    else:
+        return get_db_connection_string()
 
-    db_path = os.getenv("SIMPLEFIN_DB_PATH")
-    if db_path:
-        # check if it's already a full URL (like postgresql://...)
-        if "://" in db_path:
-            return db_path
-        else:
-            return f"sqlite:///{db_path}"
 
-    return SimpleFIN_DB.connection_str
 def run_archiver_backend(
     simplefin_key: Optional[str] = None,
     simplefin_key_file: Optional[Path] = None,
@@ -101,7 +96,7 @@ def run_archiver_backend(
 
     message = (
         f"Saved {len(qr.accounts)} accounts with "
-        f"{len(qr.transactions)} transactions to {db_url}"
+        f"{len(qr.transactions)} transactions."
     )
 
     typer.secho(message, fg=typer.colors.GREEN)

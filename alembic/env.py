@@ -1,5 +1,3 @@
-
-import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -10,18 +8,8 @@ from alembic import context
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-from simplefin_archiver import SimpleFIN_DB  # noqa: E402
-db_path = os.environ.get('SIMPLEFIN_DB_PATH')
-if db_path:
-    if "://" in db_path:
-        # It's a full URL (e.g. postgresql://...), use it directly
-        config.set_main_option("sqlalchemy.url", db_path)
-    else:
-        # It's just a file path, assume SQLite
-        config.set_main_option("sqlalchemy.url", f"sqlite:///{db_path}")
-else:
-    # Fallback to default
-    config.set_main_option('sqlalchemy.url', SimpleFIN_DB.connection_str)
+from simplefin_archiver.db import get_db_connection_string  # noqa: E402
+config.set_main_option("sqlalchemy.url", get_db_connection_string())
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
