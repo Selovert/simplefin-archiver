@@ -25,7 +25,10 @@ class SimpleFIN_DB:
         self.conn_timeout = conn_timeout
 
     def __enter__(self):
-        conn_args = {"timeout": self.conn_timeout}
+        conn_args = {}
+        if self.connection_str.startswith("sqlite"):
+            conn_args["timeout"] = self.conn_timeout
+
         self.engine = create_engine(self.connection_str, connect_args=conn_args)
         self.session = Session(self.engine)
         return self

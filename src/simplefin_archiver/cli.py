@@ -70,10 +70,13 @@ def resolve_db_url(db: Optional[str]) -> str:
 
     db_path = os.getenv("SIMPLEFIN_DB_PATH")
     if db_path:
-        return f"sqlite:///{db_path}"
+        # check if it's already a full URL (like postgresql://...)
+        if "://" in db_path:
+            return db_path
+        else:
+            return f"sqlite:///{db_path}"
 
     return SimpleFIN_DB.connection_str
-
 def run_archiver_backend(
     simplefin_key: Optional[str] = None,
     simplefin_key_file: Optional[Path] = None,

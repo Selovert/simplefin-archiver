@@ -11,9 +11,16 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 from simplefin_archiver import SimpleFIN_DB  # noqa: E402
-if os.environ.get('SIMPLEFIN_DB_PATH'):
-    config.set_main_option("sqlalchemy.url", f"sqlite:///{os.environ.get('SIMPLEFIN_DB_PATH')}")
+db_path = os.environ.get('SIMPLEFIN_DB_PATH')
+if db_path:
+    if "://" in db_path:
+        # It's a full URL (e.g. postgresql://...), use it directly
+        config.set_main_option("sqlalchemy.url", db_path)
+    else:
+        # It's just a file path, assume SQLite
+        config.set_main_option("sqlalchemy.url", f"sqlite:///{db_path}")
 else:
+    # Fallback to default
     config.set_main_option('sqlalchemy.url', SimpleFIN_DB.connection_str)
 
 # Interpret the config file for Python logging.
