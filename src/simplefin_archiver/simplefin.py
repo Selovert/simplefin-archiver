@@ -8,6 +8,7 @@ from .models import Account, Balance, QueryLog, Transaction
 from .models import QueryResult
 
 DEFAULT_DAYS_HISTORY = 14
+DEFAULT_TIMEOUT = 30
 
 ACCT_DUMP_EXLUDES = {  # keys to exclude from raw_json dump
     "balance",
@@ -32,7 +33,7 @@ class SimpleFIN:
     _timeout: int
     debug: bool
 
-    def __init__(self, api_token: str, debug: bool = False, timeout: int = 30):
+    def __init__(self, api_token: str, debug: bool = False, timeout: int = DEFAULT_TIMEOUT):
         self.__API_URL = "https://beta-bridge.simplefin.org/simplefin"
         self.__api_user = api_token.split(":")[0]
         self.__api_passwd = api_token.split(":")[1]

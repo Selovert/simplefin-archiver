@@ -5,7 +5,7 @@ from typing import Optional
 
 import typer
 from simplefin_archiver import SimpleFIN, SimpleFIN_DB, QueryResult
-from simplefin_archiver.simplefin import DEFAULT_DAYS_HISTORY
+from simplefin_archiver.simplefin import DEFAULT_DAYS_HISTORY, DEFAULT_TIMEOUT
 
 app = typer.Typer(help="Query SimpleFIN and persist accounts to a SQLite DB")
 
@@ -130,7 +130,7 @@ def run_archiver(
         help="SQLAlchemy DB URL (or use SIMPLEFIN_DB_PATH env var)",
     ),
     timeout: int = typer.Option(
-        20,
+        DEFAULT_TIMEOUT,
         "--timeout",
         help="Connection timeout in seconds",
     ),
