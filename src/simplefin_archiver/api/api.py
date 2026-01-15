@@ -4,7 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException, Security, BackgroundTasks
 from fastapi.security import APIKeyHeader
 
 from simplefin_archiver.models import Balance
-from simplefin_archiver.db import SimpleFIN_DB
+from simplefin_archiver.db import SimpleFIN_DB, get_db_connection_string
 from simplefin_archiver.cli import run_archiver_backend
 from simplefin_archiver import schemas
 
@@ -25,8 +25,7 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 def get_db():
-    db_path = getenv("SIMPLEFIN_DB_PATH")
-    connection_str = f"sqlite:///{db_path}"
+    connection_str = get_db_connection_string()
     with SimpleFIN_DB(connection_str=connection_str) as db:
         yield db
 
