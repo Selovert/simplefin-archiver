@@ -13,8 +13,8 @@ from simplefin_archiver.schemas import TransactionBasicSchema as Tx_Schema
 
 
 @task(
-    # retries=1,
-    # retry_delay_seconds=[60],
+    retries=2,
+    retry_delay_seconds=[60],
 )
 def request_simplefin() -> QueryResult:
     _logger = get_run_logger()
