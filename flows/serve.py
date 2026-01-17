@@ -1,4 +1,4 @@
-from .update_accounts import update_accounts
+from flows.update_accounts import update_accounts
 
 if __name__ == "__main__":
     update_accounts.serve(
