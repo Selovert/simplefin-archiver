@@ -11,8 +11,8 @@ services:
     command: ["python", "flows/update_accounts.py"]
 
     networks:
-      - prefect_network      # To talk to API
-      - simplefin_db_network # To talk to Postgres
+      - prefect_network  # To talk to API
+      - simplefin_db     # To talk to Postgres
 
     environment:
       PREFECT_API_URL: http://prefect_server:4200/api
