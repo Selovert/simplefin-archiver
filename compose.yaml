@@ -16,7 +16,7 @@ services:
 
     environment:
       PREFECT_API_URL: http://prefect_server:4200/api
-      PYTHONUNBUFFERED: "1"
+      POSTGRES_HOST: simplefin_db
 
 networks:
   prefect:
