@@ -62,11 +62,3 @@ def write_to_db(q_result: QueryResult):
 def update_accounts():
     q_result: QueryResult = request_simplefin()
     write_to_db(q_result)
-
-if __name__ == "__main__":
-    # creates a deployment and starts a long-running
-    # process that listens for scheduled work
-    update_accounts.serve(
-        name="simplefin-update-accounts",
-        tags=["simplefin"],
-    )

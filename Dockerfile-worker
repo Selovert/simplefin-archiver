@@ -26,4 +26,4 @@ COPY . .
 RUN uv sync --frozen --no-default-groups --group prefect-flow
 
 # (Optional) Set default command, though Prefect overrides this
-CMD ["uv" ,"run", "flows/update_accounts.py"]
+CMD ["uv" ,"run", "flows/serve.py"]

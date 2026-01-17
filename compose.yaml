@@ -5,10 +5,7 @@ services:
       dockerfile: Dockerfile-worker
     container_name: prefect_simplefin
     restart: unless-stopped
-
-    # 2. Run the python script directly.
-    # Since we use .serve(), this command effectively "starts the worker"
-    command: ["python", "flows/update_accounts.py"]
+    command: ["python", "flows/serve.py"]
 
     networks:
       - prefect       # To talk to API
