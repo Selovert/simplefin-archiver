@@ -1,9 +1,9 @@
 services:
-  simplefin_prefect:
+  prefect_simplefin:
     build:
       context: .
       dockerfile: Dockerfile-worker
-    container_name: simplefin_prefect
+    container_name: prefect_simplefin
     restart: unless-stopped
 
     # 2. Run the python script directly.
