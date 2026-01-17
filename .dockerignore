@@ -1,0 +1,18 @@
+# .dockerignore
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.DS_Store
+*.db
+*.sqlite
+
+# dev items
+*.db
+*.ipynb
+input
+
+# keys
+*_key
+*.cred

@@ -1,0 +1,29 @@
+# Use the official Python "slim" image (Debian-based, much smaller than full Python)
+FROM python:3.12-slim
+
+# Install system dependencies if needed (e.g. for psycopg2/postgres)
+# RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+
+# Set up the working directory
+WORKDIR /app
+
+# Install uv (much faster/cleaner than pip)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# force uv to sync to system python
+ENV UV_PROJECT_ENVIRONMENT="/usr/local"
+
+# Copy dependency files first to leverage Docker caching
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies into the system python
+RUN uv sync --frozen --no-default-groups --group prefect-flow --no-install-project
+
+# Copy the rest of your application code
+COPY . .
+
+# install the app now that it's present
+RUN uv sync --frozen --no-default-groups --group prefect-flow
+
+# (Optional) Set default command, though Prefect overrides this
+CMD ["uv" ,"run", "flows/update_accounts.py"]

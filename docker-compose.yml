@@ -1,51 +1,25 @@
 services:
-  simplefin-archiver:
-    build: .
-    container_name: simplefin-archiver
-    ports:
-      # Expose port for FastAPI (optional)
-      - "8000:8000"
-    environment:
-      - TZ=America/Los_Angeles
-      ###### SECURITY ######
-      # Provide simplefin API key directly
-      # - SIMPLEFIN_KEY=your-api-key-here
-      # Provide simplefin API key via Docker secret (must enable secret below)
-      - SIMPLEFIN_KEY_FILE=/run/secrets/SIMPLEFIN_KEY
-      # Provide simplefin API key directly
-      # - ARCHIVER_API_KEY=your-api-key-here
-      # Provide archiver API key via Docker secret (must enable secret below)
-      - ARCHIVER_API_KEY_FILE=/run/secrets/ARCHIVER_API_KEY
-
-      ###### DATABASE ######
-      # # Db path inside the container (optional , default: /app/data/simplefin.db)
-      # - SIMPLEFIN_DB_PATH=/app/data/simplefin.db
-      # # Postgres config (will override sqlite path)
-      # - POSTGRES_USER=simplefin  # optional; default as shown
-      # - POSTGRES_PASSWORD=password  # required if using postgres db
-      # - POSTGRES_HOST=localhost  # optional; default as shown
-      # - POSTGRES_PORT=5432  # optional; default as shown
-      # - POSTGRES_DB=simplefin_db  # optional; default as shown
-
-
-      ###### QUERY CONFIGS ######
-      # Days of history to query (optional, default: 5)
-      # - QUERY_HISTORY_DAYS=5
-      # Cron schedule (optional, default: "0 0 * * *" for daily at midnight)
-      # - CRON_SCHEDULE="0 0 * * *"
-      # Query at startup (optional, default: "false")
-      # - QUERY_AT_STARTUP=true
-    volumes:
-      # Mount the database file outside the container
-      - ./simplefin_data:/app/data
-    secrets:
-      - SIMPLEFIN_KEY
-      - ARCHIVER_API_KEY
+  simplefin_prefect:
+    build:
+      context: .
+      dockerfile: Dockerfile-worker
+    container_name: simplefin_prefect
     restart: unless-stopped
 
-secrets:
-  # Pass secrets to the container
-  SIMPLEFIN_KEY:
-    file: ./SIMPLEFIN_KEY
-  ARCHIVER_API_KEY:
-    file: ./ARCHIVER_API_KEY
+    # 2. Run the python script directly.
+    # Since we use .serve(), this command effectively "starts the worker"
+    command: ["python", "flows/update_accounts.py"]
+
+    networks:
+      - prefect_network      # To talk to API
+      - simplefin_db_network # To talk to Postgres
+
+    environment:
+      PREFECT_API_URL: http://prefect_server:4200/api
+      PYTHONUNBUFFERED: "1"
+
+networks:
+  prefect_network:
+    external: true
+  simplefin_db_network:
+    external: true
