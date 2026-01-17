@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from .models import Account, Balance, Transaction
 from .models import QueryResult
 
-def get_db_connection_string() -> str:
+def get_db_connection_string(logger: logging.Logger = None) -> str:
     """
     Priority:
     1. Explicit function argument (handled by callers)
@@ -16,6 +16,8 @@ def get_db_connection_string() -> str:
     3. SIMPLEFIN_DB_PATH env var (File path or custom URL)
     4. Default SQLite file
     """
+    if not logger:
+        logger = logging.getLogger()
 
     # Check for Postgres credentials (Env vars specific to your container setup)
     pg_pass = os.getenv("POSTGRES_PASSWORD")
@@ -26,27 +28,30 @@ def get_db_connection_string() -> str:
         dbname = os.getenv("POSTGRES_DB", "simplefin_db")
 
         # Construct the safe URL
-        logging.info(f"Connecting to postgres {user}@{host}:{port}/{dbname}")
+        logger.info(f"Connecting to postgres {user}@{host}:{port}/{dbname}")
         return f"postgresql+psycopg2://{user}:{pg_pass}@{host}:{port}/{dbname}"
 
     # Fallback to your old logic
     db_path = os.getenv("SIMPLEFIN_DB_PATH")
     if db_path:
-        logging.info(f"Connecting to sqlite at path {db_path}")
+        logger.info(f"Connecting to sqlite at path {db_path}")
         return f"sqlite:///{db_path}"
 
-    logging.info("Connecting to sqlite at default simplefin.db")
+    logger.info("Connecting to sqlite at default simplefin.db")
     return "sqlite:///simplefin.db"
 
 class SimpleFIN_DB:
     conn_timeout: int
+    logger: logging.Logger
 
     def __init__(
         self,
         connection_str: Optional[str] = None,
         db_path: Optional[str] = None,
         conn_timeout: int = 10,
+        logger: logging.Logger = None,
     ) -> None:
+        self.logger = logger or logging.getLogger()
         if connection_str:
             self.connection_str = connection_str
         elif db_path:

@@ -32,19 +32,28 @@ class SimpleFIN:
     __api_passwd: str
     _timeout: int
     debug: bool
+    logger: logging.Logger
 
-    def __init__(self, api_token: str, debug: bool = False, timeout: int = DEFAULT_TIMEOUT):
+    def __init__(
+        self,
+        api_token: str,
+        debug: bool = False,
+        timeout: int = DEFAULT_TIMEOUT,
+        logger: logging.Logger = None,
+    ):
         self.__API_URL = "https://beta-bridge.simplefin.org/simplefin"
         self.__api_user = api_token.split(":")[0]
         self.__api_passwd = api_token.split(":")[1]
         self.debug = debug
         self._timeout = timeout
 
+        self.logger = logger or logging.getLogger()
+
     def query_accounts(self, days_history: int = 7) -> QueryResult:
         start_date = datetime.now() - timedelta(days=days_history)
-        logging.info(f"start_date is {start_date.isoformat(timespec='hours')}")
+        self.logger.info(f"start_date is {start_date.isoformat(timespec='hours')}")
 
-        logging.info(f"Initiating request to {self.__API_URL}/accounts...")
+        self.logger.info(f"Initiating request to {self.__API_URL}/accounts...")
         resp = requests.get(
             url=f"{self.__API_URL}/accounts",
             auth=(self.__api_user, self.__api_passwd),
@@ -58,9 +67,9 @@ class SimpleFIN:
                 raise Exception(f"Request error: {resp.status_code}")
 
         if self.debug:
-            logging.debug(f"Request successful\n{resp.text}\nParsing account data...")
+            self.logger.debug(f"Request successful\n{resp.text}\nParsing account data...")
         else:
-            logging.info("Request successful; parsing account data...")
+            self.logger.info("Request successful; parsing account data...")
         accts_raw: list[dict] = resp.json()["accounts"]
         if not len(accts_raw):
             if self.debug:
@@ -68,9 +77,9 @@ class SimpleFIN:
             else:
                 raise Exception("No accounts found.")
         elif self.debug:
-            logging.debug(f"{len(accts_raw)} raw accounts found:")
+            self.logger.debug(f"{len(accts_raw)} raw accounts found:")
             for a in accts_raw:
-                logging.debug(a)
+                self.logger.debug(a)
 
         accounts: list[Account] = []
         balances: list[Balance] = []
@@ -82,7 +91,7 @@ class SimpleFIN:
             bank: str = acct_raw["org"].get("name")
             if not bank:  # if org name is missing, org domain is required by simpleFIN
                 bank = acct_raw["org"].get("domain")
-                logging.info(f"Defaulted '{acct_name}' org name to domain '{bank}'")
+                self.logger.info(f"Defaulted '{acct_name}' org name to domain '{bank}'")
             # generate raw json without temporal data
             acct_raw_json = json.dumps(
                 {k: v for k, v in acct_raw.items() if k not in ACCT_DUMP_EXLUDES}
@@ -96,20 +105,20 @@ class SimpleFIN:
                 raw_json=acct_raw_json,
             )
             if self.debug:
-                logging.debug(f"Loaded account: {acct}")
+                self.logger.debug(f"Loaded account: {acct}")
             accounts.append(acct)
 
             # balance
             if self.debug:
-                logging.debug(f"Loading balance for account {acct.id}...")
-            balance = SimpleFIN._get_balance(acct_raw, self.debug)
+                self.logger.debug(f"Loading balance for account {acct.id}...")
+            balance = SimpleFIN._get_balance(acct_raw, self.debug, self.logger)
             balances.append(balance)
 
             # transactions
             if self.debug:
-                logging.debug(f"Loading transactions for account {acct.id}...")
-            txs = SimpleFIN._get_transactions(acct_raw, self.debug)
-            logging.info(f"Loaded {len(txs):>3} transactions for account {acct.name}")
+                self.logger.debug(f"Loading transactions for account {acct.id}...")
+            txs = SimpleFIN._get_transactions(acct_raw, self.debug, self.logger)
+            self.logger.info(f"Loaded {len(txs):>3} transactions for account {acct.name}")
             transactions.extend(txs)
 
 
@@ -120,19 +129,25 @@ class SimpleFIN:
             raw_response=resp.text,
         )
         if self.debug:
-            logging.debug(f"Created query log: {q_log}")
+            self.logger.debug(f"Created query log: {q_log}")
 
         return QueryResult(accounts, balances, transactions, q_log)
 
     @staticmethod
-    def _get_balance(acct_raw: dict, debug: bool = False) -> list[Transaction]:
+    def _get_balance(
+        acct_raw: dict,
+        debug: bool = False,
+        logger: logging.Logger = None,
+    ) -> list[Transaction]:
+        if not logger:
+            logger = logging.getLogger()
         # get account name
         acct_name: str = acct_raw["name"]
         # get balance date
         try:
             balance_date = datetime.fromtimestamp(int(acct_raw["balance-date"]))
         except Exception as ex:
-            logging.warning(
+            logger.warning(
                 f"Couldn't get balance date for {acct_name}: {ex}.\nDefaulting to today."
             )
             balance_date = datetime.now()
@@ -141,7 +156,7 @@ class SimpleFIN:
         try:
             balance: float = float(acct_raw["balance"])
         except Exception as ex:
-            logging.warning(f"Couldn't get balance for {acct_name}: {ex}.\nDefaulting to 0")
+            logger.warning(f"Couldn't get balance for {acct_name}: {ex}.\nDefaulting to 0")
 
             balance: float = 0.0
 
@@ -151,7 +166,7 @@ class SimpleFIN:
             if available_balance_raw is not None:
                 available_balance: float | None = float(available_balance_raw)
         except Exception as ex:
-            logging.info(f"Could not get available balance for {acct_name}: {ex}.")
+            logger.info(f"Could not get available balance for {acct_name}: {ex}.")
             available_balance: float | None = None
 
         # generate a balance id
@@ -171,12 +186,18 @@ class SimpleFIN:
             raw_json=balance_raw_json,
         )
         if debug:
-            logging.debug(f"Loaded balance: {balance}")
+            logger.debug(f"Loaded balance: {balance}")
 
         return balance
 
     @staticmethod
-    def _get_transactions(acct_raw: dict, debug: bool = False) -> list[Transaction]:
+    def _get_transactions(
+        acct_raw: dict,
+        debug: bool = False,
+        logger: logging.Logger = None,
+    ) -> list[Transaction]:
+        if not logger:
+            logger = logging.getLogger()
         txs: list[Transaction] = []
         txs_raw: list[dict] = acct_raw.get("transactions")
         for tx_raw in txs_raw:
@@ -203,7 +224,7 @@ class SimpleFIN:
                 if tx_at is not None:
                     tx_at: float | None = datetime.fromtimestamp(int(tx_at))
             except Exception as ex:
-                logging.info(f"Couldn't get transacted date for {tx_id}: {ex}")
+                logger.info(f"Couldn't get transacted date for {tx_id}: {ex}")
                 tx_at: float | None = None
 
             tx: Transaction = Transaction(
@@ -219,7 +240,7 @@ class SimpleFIN:
                 extra_attrs=json.dumps(extra),
             )
             if debug:
-                logging.debug(f"Loaded transaction: {tx}")
+                logger.debug(f"Loaded transaction: {tx}")
 
             txs.append(tx)
 
