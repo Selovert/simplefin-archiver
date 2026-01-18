@@ -13,6 +13,7 @@ services:
 
     environment:
       PREFECT_API_URL: http://prefect_server:4200/api
+      PREFECT_API_AUTH_STRING: admin:${PREFECT_API_PASS:?err}
       POSTGRES_HOST: simplefin_db
 
 networks:
