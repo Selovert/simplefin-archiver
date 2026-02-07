@@ -15,6 +15,7 @@ dependencies = [
     "typer>=0.20.0",
     "regex>=2026.1.15",
     "imap-tools>=1.11.1",
+    "beautifulsoup4>=4.14.3",
 ]
 
 [dependency-groups]
