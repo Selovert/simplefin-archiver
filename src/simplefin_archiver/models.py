@@ -61,7 +61,7 @@ class Transaction:
     tags: Mapped[Optional[str]] = mapped_column(default=None)
     notes: Mapped[Optional[str]] = mapped_column(default=None)
     transacted_at: Mapped[Optional[datetime]] = mapped_column(default=None)
-    extra_attrs: Mapped[Optional[str]] = mapped_column(default=None)
+    extra_attrs: Mapped[Optional[str]] = mapped_column(default="")
     account: Mapped["Account"] = relationship(
         default=None,
         init=False,
