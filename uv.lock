@@ -2931,6 +2931,7 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "psycopg2-binary" },
+    { name = "regex" },
     { name = "requests" },
     { name = "sqlalchemy" },
     { name = "typer" },
@@ -2957,6 +2958,7 @@ prefect-flow = [
 requires-dist = [
     { name = "alembic", specifier = ">=1.17.2" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
+    { name = "regex", specifier = ">=2026.1.15" },
     { name = "requests", specifier = ">=2.32.0" },
     { name = "sqlalchemy", specifier = ">=2.0.0" },
     { name = "typer", specifier = ">=0.20.0" },
