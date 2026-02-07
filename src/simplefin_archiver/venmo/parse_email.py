@@ -118,7 +118,7 @@ def parse_transfer_tx(email: MailMessage) -> Optional[Transaction]:
         amount=tx_amount,
         description=f"Transfer to {tx_dest}",
         raw_json="Processed thru prefect",
-        payee=tx_amount,
+        payee=tx_dest,
     )
     logging.info(f"Transfer transaction parsed: {tx}")
     return tx
